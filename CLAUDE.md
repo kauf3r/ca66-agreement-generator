@@ -144,3 +144,7 @@ pa11y http://localhost:8000
 - Handle edge cases (past dates, special characters)
 - Mobile-first responsive design
 - No console.log statements in production
+
+## Project Milestones
+
+- Milestone 2 completion
