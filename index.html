@@ -10,7 +10,7 @@
     <title>CA-66 Airport Usage License Agreement</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
+    <link rel="icon" type="image/png" href="assets/images/logos/AirSpace Integration Logo.png">
     <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
     
     <!-- Stylesheets -->
@@ -35,7 +35,7 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo-section">
-                    <img src="assets/images/logo.svg" alt="AirSpace Integration" class="logo">
+                    <img src="assets/images/logos/AirSpace Integration Logo.png" alt="AirSpace Integration" class="logo">
                     <div class="site-title">
                         <h1>CA-66 Airport Usage License Agreement</h1>
                         <p class="subtitle">Monterey Bay Academy Airport</p>
@@ -83,8 +83,71 @@
                 <fieldset class="form-section" id="licensee-section">
                     <legend>1. Licensee Information</legend>
                     <div class="section-content">
-                        <!-- Form fields will be added in next milestone -->
-                        <p class="placeholder-text">Form fields will be implemented in Milestone 2</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="licensee-name">Full Name *</label>
+                                <input type="text" id="licensee-name" name="licenseeName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company-name">Company Name</label>
+                                <input type="text" id="company-name" name="companyName">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="street-address">Street Address *</label>
+                            <input type="text" id="street-address" name="streetAddress" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">City *</label>
+                                <input type="text" id="city" name="city" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="state">State *</label>
+                                <select id="state" name="state" required>
+                                    <option value="">Select State</option>
+                                    <option value="CA">California</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="zip-code">ZIP Code *</label>
+                                <input type="text" id="zip-code" name="zipCode" pattern="[0-9]{5}(-[0-9]{4})?" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="pilot-cert">Pilot Certificate Number *</label>
+                                <input type="text" id="pilot-cert" name="pilotCert" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="flight-hours">Total Flight Hours *</label>
+                                <input type="number" id="flight-hours" name="flightHours" min="300" required>
+                                <small>Minimum 300 hours required</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="medical-cert" name="medicalCert" required>
+                                <label for="medical-cert">I hold a valid medical certificate *</label>
+                            </div>
+                        </div>
                     </div>
                 </fieldset>
 
@@ -92,7 +155,41 @@
                 <fieldset class="form-section" id="aircraft-section">
                     <legend>2. Aircraft Information</legend>
                     <div class="section-content">
-                        <p class="placeholder-text">Aircraft details form will be implemented in Milestone 2</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="aircraft-registration">Aircraft Registration Number *</label>
+                                <input type="text" id="aircraft-registration" name="aircraftRegistration" placeholder="e.g., N12345" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="aircraft-make-model">Aircraft Make/Model *</label>
+                                <input type="text" id="aircraft-make-model" name="aircraftMakeModel" placeholder="e.g., Cessna 172" required>
+                            </div>
+                        </div>
+                        
+                        <div class="aircraft-notice">
+                            <h4>Aircraft Type Restriction</h4>
+                            <p><strong>Single Engine Reciprocating Aircraft Only</strong></p>
+                            <p>This airport exclusively accommodates single-engine reciprocating aircraft. No turbine or multi-engine aircraft permitted.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="mtow-confirmation" name="mtowConfirmation" required>
+                                <label for="mtow-confirmation">I confirm this aircraft has a Maximum Takeoff Weight (MTOW) under 12,500 lbs *</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="grass-field-capable" name="grassFieldCapable" required>
+                                <label for="grass-field-capable">I confirm this aircraft is capable of safe grass field operations *</label>
+                            </div>
+                        </div>
+                        
+                        <div class="upload-notice">
+                            <h4>Required Documentation</h4>
+                            <p><strong>Aircraft Registration Certificate:</strong> Please ensure you have your current aircraft registration certificate available for verification during your visit.</p>
+                        </div>
                     </div>
                 </fieldset>
 
@@ -100,7 +197,68 @@
                 <fieldset class="form-section" id="insurance-section">
                     <legend>3. Insurance Information</legend>
                     <div class="section-content">
-                        <p class="placeholder-text">Insurance verification form will be implemented in Milestone 2</p>
+                        <div class="form-group">
+                            <label for="insured-name">Name of Insured *</label>
+                            <input type="text" id="insured-name" name="insuredName" required>
+                            <small>This should match the licensee name or company name</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="insurance-company">Insurance Company Name *</label>
+                            <input type="text" id="insurance-company" name="insuranceCompany" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="insurance-address">Insurance Company Address *</label>
+                            <input type="text" id="insurance-address" name="insuranceAddress" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="insurance-city">City *</label>
+                                <input type="text" id="insurance-city" name="insuranceCity" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="insurance-state">State *</label>
+                                <select id="insurance-state" name="insuranceState" required>
+                                    <option value="">Select State</option>
+                                    <option value="CA">California</option>
+                                    <option value="AL">Alabama</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="insurance-zip">ZIP Code *</label>
+                                <input type="text" id="insurance-zip" name="insuranceZip" pattern="[0-9]{5}(-[0-9]{4})?" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="insurance-phone">Insurance Company Phone *</label>
+                                <input type="tel" id="insurance-phone" name="insurancePhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="policy-number">Policy Number *</label>
+                                <input type="text" id="policy-number" name="policyNumber" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="policy-expiry">Policy Expiration Date *</label>
+                                <input type="date" id="policy-expiry" name="policyExpiry" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="coverage-amount">Coverage Amount *</label>
+                                <input type="number" id="coverage-amount" name="coverageAmount" min="1000000" step="1000" required>
+                                <small>Minimum $1,000,000 required</small>
+                            </div>
+                        </div>
+                        
+                        <div class="upload-notice">
+                            <h4>Required Documentation</h4>
+                            <p><strong>Insurance Certificate:</strong> Please ensure you have your current insurance certificate available that names all required additional insureds.</p>
+                        </div>
                     </div>
                 </fieldset>
 
@@ -108,7 +266,49 @@
                 <fieldset class="form-section" id="terms-section">
                     <legend>4. Agreement Terms</legend>
                     <div class="section-content">
-                        <p class="placeholder-text">Agreement terms and acknowledgments will be implemented in Milestone 2</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="start-date">Agreement Start Date</label>
+                                <input type="date" id="start-date" name="startDate" readonly>
+                                <small>Auto-populated with today's date</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="end-date">Agreement End Date</label>
+                                <input type="date" id="end-date" name="endDate" readonly>
+                                <small>Earlier of insurance expiry or one year from start</small>
+                            </div>
+                        </div>
+                        
+                        <div class="fee-display">
+                            <h4>Annual Fee</h4>
+                            <div class="fee-amount">$250.00</div>
+                            <p>This annual fee supports aviation education programs at Monterey Bay Academy.</p>
+                        </div>
+                        
+                        <div class="acknowledgments">
+                            <h4>Required Acknowledgments</h4>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="sabbath-observance" name="sabbathObservance" required>
+                                    <label for="sabbath-observance">I acknowledge and agree to observe the Sabbath restriction: No aircraft operations from Friday sunset to Saturday sunset *</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="airport-rules" name="airportRules" required>
+                                    <label for="airport-rules">I have read, understood, and agree to comply with all airport rules and regulations as outlined in Exhibit A *</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="liability-waiver" name="liabilityWaiver" required>
+                                    <label for="liability-waiver">I understand and agree to the liability waiver and indemnification terms contained in this agreement *</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </fieldset>
 
