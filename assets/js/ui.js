@@ -396,11 +396,7 @@ export const UIManager = {
       });
     }
     
-    if (printButton) {
-      printButton.addEventListener('click', () => {
-        window.print();
-      });
-    }
+    // Print button handler is managed by DocumentGenerator
     
     if (editButton) {
       editButton.addEventListener('click', () => {
