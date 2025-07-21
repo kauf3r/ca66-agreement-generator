@@ -1,0 +1,35 @@
+/* Print Styles */
+@media print {
+  /* Hide navigation and form elements when printing */
+  .site-header,
+  .form-actions,
+  .preview-actions,
+  .btn {
+    display: none !important;
+  }
+  
+  /* Optimize for print */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #000;
+  }
+  
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+  
+  .agreement-content {
+    page-break-inside: avoid;
+  }
+  
+  /* Ensure proper page breaks */
+  .form-section {
+    page-break-inside: avoid;
+    border: 1px solid #000;
+    margin-bottom: 1rem;
+  }
+  
+  /* Print-specific styling will be expanded in later milestones */
+}

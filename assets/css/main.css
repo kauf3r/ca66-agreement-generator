@@ -1,0 +1,61 @@
+/* Main Styles - Additional styling for Milestone 1 */
+
+/* Legal Disclaimer */
+.legal-disclaimer {
+  flex: 2;
+}
+
+.legal-disclaimer strong {
+  color: var(--primary-blue);
+}
+
+.footer-info {
+  flex: 1;
+  text-align: right;
+}
+
+.footer-info p {
+  margin-bottom: var(--space-xs);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .footer-info {
+    text-align: left;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn {
+    min-width: auto;
+  }
+}
+
+/* Focus styles for accessibility */
+.btn:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* Loading state (for future use) */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Error states (for future use) */
+.error {
+  border-color: var(--error-red) !important;
+}
+
+.success {
+  border-color: var(--success-green) !important;
+}

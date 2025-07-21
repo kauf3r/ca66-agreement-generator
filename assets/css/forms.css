@@ -1,0 +1,159 @@
+/* Form Styles - Basic styling for Milestone 1 */
+.intro-section {
+  margin-bottom: var(--space-2xl);
+  text-align: center;
+}
+
+.intro-section h2 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.intro-text {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xl);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Notice Box */
+.notice-box {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.notice-box h3 {
+  color: #92400e;
+  margin-bottom: var(--space-md);
+  font-size: 1.1rem;
+}
+
+.notice-box ul {
+  list-style: none;
+  padding: 0;
+}
+
+.notice-box li {
+  margin-bottom: var(--space-sm);
+  padding-left: var(--space-md);
+  position: relative;
+}
+
+.notice-box li::before {
+  content: '•';
+  color: #f59e0b;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+/* Form Sections */
+.form-section {
+  background: var(--bg-primary);
+  border: 1px solid var(--bg-accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-section legend {
+  font-size: 1.25rem;
+  color: var(--primary-blue);
+  font-weight: 600;
+  padding: 0 var(--space-md);
+}
+
+.section-content {
+  padding-top: var(--space-lg);
+}
+
+.placeholder-text {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+/* Buttons */
+.btn {
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.btn-primary {
+  background: var(--primary-blue);
+  color: white;
+  border: 2px solid var(--primary-blue);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-blue-dark);
+  border-color: var(--primary-blue-dark);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+}
+
+.btn-secondary:hover {
+  background: var(--primary-blue);
+  color: white;
+}
+
+/* Agreement Preview (Hidden by default) */
+.agreement-preview {
+  background: var(--bg-primary);
+  border: 2px solid var(--success-green);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-top: var(--space-xl);
+}
+
+.agreement-preview h2 {
+  color: var(--success-green);
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
+
+.preview-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--bg-accent);
+}
