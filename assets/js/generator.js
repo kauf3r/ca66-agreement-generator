@@ -165,28 +165,135 @@ export const DocumentGenerator = {
         throw new Error('No agreement available to print');
       }
       
-      // Add print-specific styling to the document
       const contentDiv = document.getElementById('agreement-content');
-      if (contentDiv) {
-        contentDiv.classList.add('print-ready');
+      if (!contentDiv) {
+        throw new Error('Agreement content not found');
       }
       
-      // Update page title for print
-      const originalTitle = document.title;
-      document.title = 'CA-66 Airport Usage License Agreement - Print Version';
+      // Create a new window for printing only the agreement
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
       
-      // Trigger browser print dialog
-      window.print();
+      // Get the print CSS
+      const printStyles = `
+        <style>
+          @media print {
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+              font-family: "Times New Roman", Times, serif !important;
+              font-size: 11pt;
+              line-height: 1.3;
+              color: #000 !important;
+              background: white !important;
+            }
+            
+            @page {
+              size: 8.5in 11in;
+              margin: 1in 1in 1in 1.25in;
+            }
+            
+            .agreement-document {
+              width: 100%;
+              max-width: none;
+              margin: 0;
+              padding: 0;
+              background: white;
+              font-family: "Times New Roman", Times, serif;
+            }
+            
+            .agreement-header {
+              text-align: center;
+              margin-bottom: 24pt;
+              page-break-inside: avoid;
+            }
+            
+            .agreement-header h1 {
+              font-size: 16pt;
+              font-weight: bold;
+              margin: 0 0 8pt 0;
+              text-transform: uppercase;
+              letter-spacing: 1pt;
+            }
+            
+            .agreement-header h2 {
+              font-size: 14pt;
+              font-weight: normal;
+              margin: 0 0 12pt 0;
+            }
+            
+            .agreement-body section {
+              margin-bottom: 18pt;
+              page-break-inside: avoid;
+            }
+            
+            .agreement-body h3 {
+              font-size: 12pt;
+              font-weight: bold;
+              text-transform: uppercase;
+              margin: 18pt 0 10pt 0;
+              text-align: center;
+              border-bottom: 1pt solid #000;
+              padding-bottom: 4pt;
+            }
+            
+            .agreement-body p {
+              margin: 6pt 0;
+              text-align: justify;
+              orphans: 3;
+              widows: 3;
+            }
+            
+            .party-block {
+              margin: 12pt 0;
+              padding: 8pt;
+              border: 1pt solid #000;
+              page-break-inside: avoid;
+            }
+            
+            .signature-line .line {
+              border-bottom: 1pt solid #000;
+              width: 200pt;
+              height: 24pt;
+              margin: 0 auto 6pt auto;
+            }
+          }
+        </style>
+      `;
       
-      // Restore original title after print dialog
-      setTimeout(() => {
-        document.title = originalTitle;
-        if (contentDiv) {
-          contentDiv.classList.remove('print-ready');
-        }
-      }, 1000);
+      // Write the agreement content to the new window
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>CA-66 Airport Usage License Agreement</title>
+          <meta charset="utf-8">
+          ${printStyles}
+        </head>
+        <body>
+          ${contentDiv.innerHTML}
+        </body>
+        </html>
+      `);
       
-      console.log('✅ Print dialog opened');
+      printWindow.document.close();
+      
+      // Wait for content to load, then print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+          printWindow.close();
+        }, 250);
+      };
+      
+      console.log('✅ Print dialog opened for agreement only');
       
     } catch (error) {
       console.error('❌ Print failed:', error);
