@@ -161,6 +161,11 @@ export const UIManager = {
         }
         break;
         
+      case 'company-name':
+        // Company name is optional
+        validation = { valid: true };
+        break;
+        
       default:
         // For fields without specific validation, just check if required
         validation = value ? { valid: true } : { valid: false, message: 'This field is required.' };
