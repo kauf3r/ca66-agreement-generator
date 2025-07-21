@@ -176,14 +176,15 @@ export const AutoPopulator = {
     }
   },
   
-  // Calculate and set end date based on start date and insurance expiry
-  updateEndDate: (startDate, insuranceExpiryDate) => {
+  // Calculate and set end date - always 1 year from start date
+  updateEndDate: (startDate) => {
     const endDateField = document.getElementById('end-date');
     if (!endDateField) return;
     
     try {
-      const expiryDate = DateCalculator.getAgreementExpiryDate(startDate, insuranceExpiryDate);
-      endDateField.value = DateCalculator.formatDateForInput(expiryDate);
+      // Always use 1 year from start date (ignore insurance expiry for end date calculation)
+      const oneYearLater = DateCalculator.addOneYear(new Date(startDate));
+      endDateField.value = DateCalculator.formatDateForInput(oneYearLater);
     } catch (error) {
       console.error('Error calculating end date:', error);
       endDateField.value = '';

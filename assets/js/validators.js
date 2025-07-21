@@ -169,8 +169,8 @@ export const Validators = {
     
     const reg = registration.trim().toUpperCase();
     
-    // Basic US registration format: N followed by 1-5 alphanumeric characters
-    const usRegex = /^N[0-9]{1,4}[A-Z]{0,2}$/;
+    // Basic US registration format: N followed by 1-5 digits, optionally followed by 0-2 letters
+    const usRegex = /^N[0-9]{1,5}[A-Z]{0,2}$/;
     
     if (!usRegex.test(reg)) {
       return { 

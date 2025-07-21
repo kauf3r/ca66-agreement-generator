@@ -156,7 +156,7 @@ export const UIManager = {
         if (validation.valid) {
           const startDate = document.getElementById('start-date')?.value;
           if (startDate) {
-            AutoPopulator.updateEndDate(startDate, value);
+            AutoPopulator.updateEndDate(startDate);
           }
         }
         break;
@@ -175,6 +175,9 @@ export const UIManager = {
     
     // Update progress
     UIManager.updateProgress(UIManager.calculateProgress());
+    
+    // Update button state after each field validation
+    UIManager.updateButtonState();
     
     return validation.valid;
   },
@@ -220,6 +223,44 @@ export const UIManager = {
     }
     
     return isValid;
+  },
+  
+  // Update button state based on form validation (without triggering validation)
+  updateButtonState: () => {
+    const generateButton = document.getElementById('generate-agreement');
+    if (generateButton) {
+      // Check validation state without re-running validations
+      const isValid = UIManager.checkFormValidationState();
+      generateButton.disabled = !isValid;
+      
+      if (isValid) {
+        generateButton.classList.remove('disabled');
+        generateButton.setAttribute('title', 'Generate your agreement');
+      } else {
+        generateButton.classList.add('disabled');
+        generateButton.setAttribute('title', 'Complete all required fields to generate agreement');
+      }
+    }
+  },
+
+  // Check validation state without running validations (prevents recursion)
+  checkFormValidationState: () => {
+    const requiredFields = [
+      'licensee-name', 'street-address', 'city', 'state', 'zip-code',
+      'phone', 'email', 'pilot-cert', 'flight-hours', 'medical-cert',
+      'aircraft-registration', 'aircraft-make-model', 'mtow-confirmation', 'grass-field-capable',
+      'insured-name', 'insurance-company', 'insurance-address', 'insurance-city',
+      'insurance-state', 'insurance-zip', 'insurance-phone', 'policy-number',
+      'policy-expiry', 'coverage-amount', 'sabbath-observance', 'airport-rules', 'liability-waiver'
+    ];
+    
+    // Check if all fields have valid state in validationState
+    for (const fieldId of requiredFields) {
+      if (!UIManager.validationState[fieldId] || !UIManager.validationState[fieldId].valid) {
+        return false;
+      }
+    }
+    return true;
   },
   
   // Clear all form data
@@ -283,6 +324,9 @@ export const UIManager = {
     // Set up special field handlers
     UIManager.setupSpecialHandlers();
     
+    // Initialize button state
+    UIManager.updateButtonState();
+    
     console.log('UI Manager initialized with real-time feedback system');
   },
   
@@ -335,8 +379,11 @@ export const UIManager = {
         e.preventDefault();
         if (UIManager.isFormValid()) {
           console.log('Form is valid, generating agreement...');
-          // Agreement generation will be implemented in next phase
-          alert('Form validation passed! Agreement generation will be implemented in Phase 3.');
+          // Trigger agreement generation (this will be handled by the main app)
+          const generateEvent = new CustomEvent('generateAgreement', {
+            detail: { formValid: true }
+          });
+          document.dispatchEvent(generateEvent);
         } else {
           console.log('Form validation failed');
           UIManager.scrollToFirstError();
@@ -368,7 +415,7 @@ export const UIManager = {
       policyExpiryField.addEventListener('change', (e) => {
         const startDate = document.getElementById('start-date')?.value;
         if (startDate) {
-          AutoPopulator.updateEndDate(startDate, e.target.value);
+          AutoPopulator.updateEndDate(startDate);
         }
       });
     }

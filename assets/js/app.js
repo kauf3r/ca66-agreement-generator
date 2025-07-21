@@ -1,8 +1,9 @@
-// Main Application - Phase 1 Complete System
+// Main Application - Phase 3 Complete System
 import { AppConfig } from './config.js';
 import { Validators, ValidationHelpers } from './validators.js';
 import { DateCalculator, FeeCalculator, AutoPopulator } from './calculator.js';
 import { UIManager } from './ui.js';
+import { DocumentGenerator } from './generator.js';
 
 class AgreementApp {
   constructor() {
@@ -31,7 +32,7 @@ class AgreementApp {
     this.initializeAutoPopulation();
     
     this.isInitialized = true;
-    console.log('CA-66 Agreement Generator - Phase 1 Complete System Initialized');
+    console.log('CA-66 Agreement Generator - Phase 3 Complete System Initialized');
   }
   
   // Data Collection & Management System
@@ -110,10 +111,9 @@ class AgreementApp {
     if (policyExpiryField && startDateField) {
       const updateEndDate = () => {
         const startDate = startDateField.value;
-        const insuranceExpiry = policyExpiryField.value;
         
-        if (startDate && insuranceExpiry) {
-          AutoPopulator.updateEndDate(startDate, insuranceExpiry);
+        if (startDate) {
+          AutoPopulator.updateEndDate(startDate);
         }
       };
       
@@ -132,6 +132,12 @@ class AgreementApp {
         this.handleFormSubmission();
       });
     }
+    
+    // Listen for agreement generation event from UI
+    document.addEventListener('generateAgreement', (e) => {
+      console.log('Generate agreement event received');
+      this.handleFormSubmission();
+    });
   }
   
   // Handle form submission (validation + agreement generation)
@@ -153,28 +159,61 @@ class AgreementApp {
     const agreementData = this.prepareAgreementData(formData);
     console.log('Agreement data prepared:', agreementData);
     
-    // Store for agreement generation (Phase 3)
+    // Store for reference
     this.agreementData = agreementData;
     
-    // Placeholder for agreement generation
-    console.log('✅ Form validation passed!');
-    console.log('📋 Agreement data ready for generation');
-    alert('Form validation successful! Agreement generation will be implemented in Phase 3.');
+    // Generate and preview the agreement
+    console.log('🔄 Generating legal agreement...');
+    try {
+      const success = DocumentGenerator.generateAndPreview(agreementData);
+      if (success) {
+        console.log('✅ Agreement generated successfully');
+      } else {
+        console.error('❌ Agreement generation failed');
+      }
+    } catch (error) {
+      console.error('❌ Agreement generation error:', error);
+      alert('Failed to generate agreement. Please check your form data and try again.');
+    }
   }
   
   // Prepare comprehensive agreement data
   prepareAgreementData(formData) {
-    const startDate = formData.startDate || DateCalculator.getTodayFormatted();
-    const insuranceExpiry = formData.policyExpiry;
+    const startDate = formData['start-date'] || DateCalculator.getTodayFormatted();
+    const insuranceExpiry = formData['policy-expiry'];
     
     const agreementData = {
-      // Basic form data
-      ...formData,
+      // Licensee Information (map form field names to template variables)
+      licenseeName: formData['licensee-name'] || '',
+      companyName: formData['company-name'] || null,
+      streetAddress: formData['street-address'] || '',
+      city: formData['city'] || '',
+      state: formData['state'] || '',
+      zipCode: formData['zip-code'] || '',
+      phone: formData['phone'] || '',
+      email: formData['email'] || '',
+      pilotCert: formData['pilot-cert'] || '',
+      flightHours: formData['flight-hours'] || '',
       
-      // Calculated dates
+      // Aircraft Information
+      aircraftRegistration: formData['aircraft-registration'] || '',
+      aircraftMakeModel: formData['aircraft-make-model'] || '',
+      
+      // Insurance Information
+      insuredName: formData['insured-name'] || '',
+      insuranceCompany: formData['insurance-company'] || '',
+      insuranceAddress: formData['insurance-address'] || '',
+      insuranceCity: formData['insurance-city'] || '',
+      insuranceState: formData['insurance-state'] || '',
+      insuranceZip: formData['insurance-zip'] || '',
+      policyNumber: formData['policy-number'] || '',
+      policyExpiry: insuranceExpiry || '',
+      coverageAmount: formData['coverage-amount'] || '',
+      
+      // Calculated dates - Always 1 year from start date
       startDate: startDate,
       endDate: DateCalculator.formatDateForInput(
-        DateCalculator.getAgreementExpiryDate(startDate, insuranceExpiry)
+        DateCalculator.addOneYear(new Date(startDate))
       ),
       
       // Fee information
@@ -191,8 +230,8 @@ class AgreementApp {
       
       // Business logic validation flags
       validations: {
-        flightHoursValid: formData.flightHours >= this.config.minimumFlightHours,
-        insuranceValid: formData.coverageAmount >= this.config.minimumInsurance,
+        flightHoursValid: (formData['flight-hours'] || 0) >= this.config.minimumFlightHours,
+        insuranceValid: (formData['coverage-amount'] || 0) >= this.config.minimumInsurance,
         allRequiredFieldsComplete: UIManager.isFormValid(),
         agreementExpiryCalculated: true
       }
@@ -239,10 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Expose to global scope for debugging
   if (window) {
     window.CA66App = appInstance;
+    window.DocumentGenerator = DocumentGenerator; // For console debugging
   }
 });
 
 // Export for potential module usage
 export { AgreementApp };
 
-console.log('CA-66 Agreement Generator - Enhanced App module loaded');
+console.log('CA-66 Agreement Generator - Phase 3 Complete App module loaded');

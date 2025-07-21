@@ -6,7 +6,7 @@ export const AppConfig = {
   additionalInsureds: [
     'Monterey Bay Academy',
     'AirSpace Integration, Inc.',
-    'Andy Kaufman',
+    'Christopher Bley',
     'Property owner',
     'Management companies',
     'Agents and employees',
