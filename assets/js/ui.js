@@ -20,8 +20,7 @@ export const UIManager = {
   // Calculate form completion percentage
   calculateProgress: () => {
     const requiredFields = [
-      'licensee-name', 'street-address', 'city', 'state', 'zip-code',
-      'phone', 'email', 'pilot-cert', 'flight-hours', 'medical-cert',
+      'licensee-name', 'phone', 'email', 'flight-hours-confirmation', 'medical-cert',
       'aircraft-registration', 'aircraft-make-model', 'mtow-confirmation', 'grass-field-capable',
       'insured-name', 'insurance-company', 'insurance-address', 'insurance-city',
       'insurance-state', 'insurance-zip', 'insurance-phone', 'policy-number',
@@ -100,8 +99,6 @@ export const UIManager = {
     
     switch (fieldId) {
       case 'licensee-name':
-      case 'street-address':
-      case 'city':
       case 'aircraft-make-model':
       case 'insured-name':
       case 'insurance-company':
@@ -124,15 +121,11 @@ export const UIManager = {
         }
         break;
         
-      case 'flight-hours':
-        validation = Validators.flightHours(value);
-        break;
         
       case 'coverage-amount':
         validation = Validators.insurance(value);
         break;
         
-      case 'zip-code':
       case 'insurance-zip':
         validation = Validators.zipCode(value);
         break;
@@ -190,8 +183,7 @@ export const UIManager = {
   // Check if form is ready for submission
   isFormValid: () => {
     const requiredFields = [
-      'licensee-name', 'street-address', 'city', 'state', 'zip-code',
-      'phone', 'email', 'pilot-cert', 'flight-hours', 'medical-cert',
+      'licensee-name', 'phone', 'email', 'flight-hours-confirmation', 'medical-cert',
       'aircraft-registration', 'aircraft-make-model', 'mtow-confirmation', 'grass-field-capable',
       'insured-name', 'insurance-company', 'insurance-address', 'insurance-city',
       'insurance-state', 'insurance-zip', 'insurance-phone', 'policy-number',
@@ -251,8 +243,7 @@ export const UIManager = {
   // Check validation state without running validations (prevents recursion)
   checkFormValidationState: () => {
     const requiredFields = [
-      'licensee-name', 'street-address', 'city', 'state', 'zip-code',
-      'phone', 'email', 'pilot-cert', 'flight-hours', 'medical-cert',
+      'licensee-name', 'phone', 'email', 'flight-hours-confirmation', 'medical-cert',
       'aircraft-registration', 'aircraft-make-model', 'mtow-confirmation', 'grass-field-capable',
       'insured-name', 'insurance-company', 'insurance-address', 'insurance-city',
       'insurance-state', 'insurance-zip', 'insurance-phone', 'policy-number',

@@ -186,14 +186,9 @@ class AgreementApp {
       // Licensee Information (map form field names to template variables)
       licenseeName: formData['licensee-name'] || '',
       companyName: formData['company-name'] || null,
-      streetAddress: formData['street-address'] || '',
-      city: formData['city'] || '',
-      state: formData['state'] || '',
-      zipCode: formData['zip-code'] || '',
       phone: formData['phone'] || '',
       email: formData['email'] || '',
-      pilotCert: formData['pilot-cert'] || '',
-      flightHours: formData['flight-hours'] || '',
+      flightHoursConfirmed: formData['flight-hours-confirmation'] || false,
       
       // Aircraft Information
       aircraftRegistration: formData['aircraft-registration'] || '',
@@ -230,7 +225,7 @@ class AgreementApp {
       
       // Business logic validation flags
       validations: {
-        flightHoursValid: (formData['flight-hours'] || 0) >= this.config.minimumFlightHours,
+        flightHoursValid: formData['flight-hours-confirmation'] || false,
         insuranceValid: (formData['coverage-amount'] || 0) >= this.config.minimumInsurance,
         allRequiredFieldsComplete: UIManager.isFormValid(),
         agreementExpiryCalculated: true

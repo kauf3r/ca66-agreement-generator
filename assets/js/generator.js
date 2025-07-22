@@ -38,8 +38,7 @@ export const DocumentGenerator = {
   // Validate that we have minimum required data for agreement generation
   validateRequiredData: (formData) => {
     const requiredFields = [
-      'licenseeName', 'streetAddress', 'city', 'state', 'zipCode',
-      'phone', 'email', 'pilotCert', 'flightHours',
+      'licenseeName', 'phone', 'email', 'flightHoursConfirmed',
       'aircraftRegistration', 'aircraftMakeModel',
       'insuranceCompany', 'policyNumber', 'coverageAmount'
     ];
@@ -52,8 +51,8 @@ export const DocumentGenerator = {
     }
     
     // Validate business rules
-    if (formData.flightHours < 300) {
-      console.error('Flight hours below minimum requirement');
+    if (!formData.flightHoursConfirmed) {
+      console.error('300+ flight hours not confirmed');
       return false;
     }
     

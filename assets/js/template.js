@@ -23,10 +23,7 @@ export const AgreementTemplate = {
           <div class="party-block">
             <p><strong>LICENSEE:</strong></p>
             <p>{{licenseeName}}{{#if companyName}} / {{companyName}}{{/if}}</p>
-            <p>{{streetAddress}}</p>
-            <p>{{city}}, {{state}} {{zipCode}}</p>
             <p>Phone: {{phone}} | Email: {{email}}</p>
-            <p>Pilot Certificate: {{pilotCert}} | Total Flight Hours: {{flightHours}}</p>
           </div>
           
           <div class="party-block">
@@ -86,7 +83,7 @@ export const AgreementTemplate = {
 
           <div class="term-block">
             <h4>4. PILOT QUALIFICATIONS</h4>
-            <p>Licensee certifies having a minimum of {{flightHours}} total flight hours and maintains a valid medical certificate as required by Federal Aviation Regulations.</p>
+            <p>Licensee certifies having a minimum of 300 total flight hours and maintains a valid medical certificate as required by Federal Aviation Regulations.</p>
           </div>
 
           <div class="term-block">
@@ -241,14 +238,9 @@ export const AgreementTemplate = {
       // Licensee Information
       licenseeName: rawData.licenseeName || '[LICENSEE NAME]',
       companyName: rawData.companyName || null,
-      streetAddress: rawData.streetAddress || '[ADDRESS]',
-      city: rawData.city || '[CITY]',
-      state: rawData.state || '[STATE]',
-      zipCode: rawData.zipCode || '[ZIP]',
       phone: rawData.phone || '[PHONE]',
       email: rawData.email || '[EMAIL]',
-      pilotCert: rawData.pilotCert || '[PILOT CERTIFICATE]',
-      flightHours: rawData.flightHours || '[FLIGHT HOURS]',
+      flightHoursConfirmed: rawData.flightHoursConfirmed || false,
       
       // Aircraft Information
       aircraftRegistration: rawData.aircraftRegistration || '[AIRCRAFT REGISTRATION]',
