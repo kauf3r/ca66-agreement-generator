@@ -55,7 +55,7 @@
                 const { PDFDocument, rgb, StandardFonts } = PDFLib;
                 
                 // Load the template
-                const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf';
+                const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
                 const response = await fetch(templatePath);
                 const templateBytes = await response.arrayBuffer();
                 const pdfDoc = await PDFDocument.load(templateBytes);

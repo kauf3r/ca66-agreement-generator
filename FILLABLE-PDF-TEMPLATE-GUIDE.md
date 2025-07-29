@@ -50,7 +50,7 @@ The system supports multiple field name variations for compatibility:
 ## Creating the Fillable PDF
 
 ### Step 1: Using Adobe Acrobat Pro
-1. Open the existing template: `[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf`
+1. Open the existing template: `[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf`
 2. Go to Tools → Prepare Form
 3. Adobe will auto-detect potential form fields
 4. Manual field creation:

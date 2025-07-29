@@ -171,7 +171,7 @@ export class PDFGenerator {
     return {
       name: 'CA66 Monterey Bay Academy Airport License Agreement',
       version: 'July 2025',
-      path: 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf',
+      path: 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf',
       fieldCount: Object.keys(this.createFieldMapping({})).length,
       supportedFormats: ['PDF']
     };

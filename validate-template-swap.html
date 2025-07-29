@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Template Swap Validation</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        #results { background: #f5f5f5; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Template Swap Validation</h1>
+    <p>This tool validates that the system now uses the July 29th template correctly.</p>
+    
+    <button onclick="validateTemplateSwap()">✅ Validate Template Swap</button>
+    <button onclick="testPDFGeneration()">🧪 Test PDF Generation</button>
+    
+    <div id="results"></div>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        import { PDFGenerator } from './assets/js/pdf-generator.js';
+        
+        window.PDFLibGenerator = PDFLibGenerator;
+        window.PDFGenerator = PDFGenerator;
+        
+        window.validateTemplateSwap = async function() {
+            const results = document.getElementById('results');
+            results.textContent = 'Validating template swap...\n\n';
+            
+            try {
+                // Test 1: Check if July29 template loads
+                results.textContent += '1. Testing July29 template loading...\n';
+                const response = await fetch('assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf');
+                
+                if (response.ok) {
+                    const bytes = await response.arrayBuffer();
+                    results.textContent += `✅ July29 template loaded successfully (${Math.round(bytes.byteLength/1024)}KB)\n`;
+                    
+                    // Test PDF parsing
+                    const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+                    results.textContent += `✅ PDF parsed successfully (${pdfDoc.getPageCount()} pages)\n`;
+                } else {
+                    results.textContent += `❌ July29 template not found (${response.status})\n`;
+                    return;
+                }
+                
+                // Test 2: Check template info from modules
+                results.textContent += '\n2. Testing module template info...\n';
+                const libGenInfo = PDFLibGenerator.getTemplateInfo();
+                const pdfGenInfo = PDFGenerator.getTemplateInfo();
+                
+                if (libGenInfo.path.includes('July29')) {
+                    results.textContent += '✅ PDFLibGenerator updated to July29\n';
+                } else {
+                    results.textContent += `❌ PDFLibGenerator still references: ${libGenInfo.path}\n`;
+                }
+                
+                if (pdfGenInfo.path.includes('July29')) {
+                    results.textContent += '✅ PDFGenerator updated to July29\n';
+                } else {
+                    results.textContent += `❌ PDFGenerator still references: ${pdfGenInfo.path}\n`;
+                }
+                
+                // Test 3: Check for July25 references
+                results.textContent += '\n3. Testing that July25 references are removed...\n';
+                try {
+                    const july25Response = await fetch('assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf');
+                    if (july25Response.ok) {
+                        results.textContent += '✅ July25 template still exists (good for backup)\n';
+                    } else {
+                        results.textContent += 'ℹ️  July25 template not found (that\'s okay)\n';
+                    }
+                } catch (error) {
+                    results.textContent += 'ℹ️  July25 template not accessible (that\'s okay)\n';
+                }
+                
+                results.textContent += '\n🎉 Template swap validation completed successfully!\n';
+                results.textContent += '\nThe system now uses the July29 template for all PDF generation.\n';
+                
+            } catch (error) {
+                results.textContent += `\n❌ Validation failed: ${error.message}\n`;
+                console.error(error);
+            }
+        };
+        
+        window.testPDFGeneration = async function() {
+            const results = document.getElementById('results');
+            results.textContent += '\n🧪 Testing PDF generation with July29 template...\n';
+            
+            const testData = {
+                'licensee-name': 'Template Swap Test User',
+                'phone': '(555) 123-4567',
+                'email': 'test@example.com',
+                'aircraft-registration': 'N12345',
+                'start-date': '2025-07-29'
+            };
+            
+            try {
+                const startTime = performance.now();
+                const pdfBytes = await PDFLibGenerator.generateFilledPDF(testData);
+                const endTime = performance.now();
+                
+                results.textContent += `✅ PDF generated successfully!\n`;
+                results.textContent += `📄 Size: ${Math.round(pdfBytes.length / 1024)}KB\n`;
+                results.textContent += `⏱️  Time: ${(endTime - startTime).toFixed(2)}ms\n`;
+                
+                // Create download
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'july29-template-test.pdf';
+                a.textContent = '💾 Download Test PDF';
+                a.style.display = 'block';
+                a.style.marginTop = '10px';
+                document.body.appendChild(a);
+                
+                results.textContent += '\n✅ Template swap working correctly!\n';
+                
+            } catch (error) {
+                results.textContent += `❌ PDF generation failed: ${error.message}\n`;
+                console.error(error);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -30,7 +30,7 @@ export class PDFLibGenerator {
       } catch (error) {
         console.log('⚠️  Fillable form template not found, falling back to text overlay template');
         // Fall back to the text overlay template
-        templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf';
+        templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
         templateBytes = await this.fetchPDFTemplate(templatePath);
         useFillableForm = false;
       }
@@ -545,7 +545,7 @@ export class PDFLibGenerator {
     return {
       name: 'CA66 Monterey Bay Academy Airport License Agreement',
       version: 'July 2025',
-      path: 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf',
+      path: 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf',
       library: 'pdf-lib',
       supportedFormats: ['PDF']
     };
