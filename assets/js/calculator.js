@@ -53,17 +53,18 @@ export const DateCalculator = {
     return day === 0 || day === 6; // Sunday or Saturday
   },
   
-  // Format date for display (MM/DD/YYYY)
+  // Format date for display (DD/MM/YYYY)
   formatDateForDisplay: (date) => {
     if (!date) return '';
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
     
-    return d.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
-    });
+    // Format as DD/MM/YYYY
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    
+    return `${day}/${month}/${year}`;
   },
   
   // Format date for HTML date input (YYYY-MM-DD)
@@ -173,6 +174,8 @@ export const AutoPopulator = {
     const startDateField = document.getElementById('start-date');
     if (startDateField) {
       startDateField.value = DateCalculator.getTodayFormatted();
+      // Trigger change event to update form data
+      startDateField.dispatchEvent(new Event('change', { bubbles: true }));
     }
   },
   
@@ -185,6 +188,8 @@ export const AutoPopulator = {
       // Always use 1 year from start date (ignore insurance expiry for end date calculation)
       const oneYearLater = DateCalculator.addOneYear(new Date(startDate));
       endDateField.value = DateCalculator.formatDateForInput(oneYearLater);
+      // Trigger change event to update form data
+      endDateField.dispatchEvent(new Event('change', { bubbles: true }));
     } catch (error) {
       console.error('Error calculating end date:', error);
       endDateField.value = '';

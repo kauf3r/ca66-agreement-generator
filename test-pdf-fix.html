@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Generation Test</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+    <h1>PDF Generation Test</h1>
+    <button onclick="testPDFGeneration()">Test PDF Generation</button>
+    <div id="results"></div>
+
+    <script type="module">
+        import { PDFGenerator } from './assets/js/pdf-generator.js';
+        import { DateCalculator } from './assets/js/calculator.js';
+        
+        window.testPDFGeneration = async function() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing PDF generation...</p>';
+            
+            try {
+                // Create test form data with mixed data types
+                const testFormData = {
+                    'licensee-name': 'John Doe',
+                    'phone': '555-123-4567',
+                    'email': 'john@example.com',
+                    'aircraft-registration': 'N12345',
+                    'aircraft-make-model': 'Cessna 172',
+                    'insurance-company': 'Test Insurance Co',
+                    'policy-number': 'POL123456',
+                    'policy-expiry': '2025-12-31',
+                    'coverage-amount': 1000000,
+                    'start-date': DateCalculator.getTodayFormatted(),
+                    'end-date': DateCalculator.formatDateForInput(
+                        DateCalculator.addOneYear(new Date())
+                    ),
+                    'flight-hours-confirmation': true,
+                    'company-name': null, // Test null value
+                    'insurance-address': ''  // Test empty string
+                };
+                
+                console.log('Test form data:', testFormData);
+                
+                // Test validation first
+                const validation = PDFGenerator.validatePDFData(testFormData);
+                console.log('Validation result:', validation);
+                
+                if (!validation.isValid) {
+                    results.innerHTML = `<p style="color: red;">Validation failed: ${validation.message}</p>`;
+                    return;
+                }
+                
+                results.innerHTML = '<p style="color: green;">✅ Validation passed! PDF generation should work.</p>';
+                
+                // Note: Actual PDF generation would require the template file
+                // This test just verifies the validation logic works
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                results.innerHTML = `<p style="color: red;">❌ Test failed: ${error.message}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>

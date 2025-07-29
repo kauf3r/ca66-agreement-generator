@@ -243,6 +243,34 @@ export const ValidationHelpers = {
     if (!date) return '';
     const d = new Date(date);
     return d.toLocaleDateString('en-US');
+  },
+  
+  // Populate state dropdown with all US states and territories
+  populateStateDropdown: (selectElementId) => {
+    const selectElement = document.getElementById(selectElementId);
+    if (!selectElement) {
+      console.error(`State dropdown element with ID '${selectElementId}' not found`);
+      return;
+    }
+    
+    // Clear existing options
+    selectElement.innerHTML = '';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select State...';
+    selectElement.appendChild(defaultOption);
+    
+    // Add all states from config
+    AppConfig.usStates.forEach(state => {
+      const option = document.createElement('option');
+      option.value = state.code;
+      option.textContent = `${state.code} - ${state.name}`;
+      selectElement.appendChild(option);
+    });
+    
+    console.log(`Populated state dropdown with ${AppConfig.usStates.length} options`);
   }
 };
 

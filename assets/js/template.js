@@ -1,6 +1,7 @@
 // Legal Agreement Template System - Phase 3 Implementation
 import { ValidationHelpers } from './validators.js';
 import { DateCalculator, FeeCalculator } from './calculator.js';
+import { AppConfig } from './config.js';
 
 export const AgreementTemplate = {
   // Main agreement template with placeholder variables
@@ -193,6 +194,45 @@ export const AgreementTemplate = {
     </div>
   `,
 
+  // Convert template from {{field}} to [FIELD] format
+  convertToESignatureFormat: (template) => {
+    // Map of mustache fields to e-signature tags
+    const fieldMap = {
+      'agreementDate': 'START-DATE',
+      'startDate': 'START-DATE', 
+      'endDate': 'END-DATE',
+      'licenseeName': 'LICENSEE',
+      'companyName': 'COMPANY-NAME',
+      'phone': 'PHONE',
+      'email': 'EMAIL',
+      'aircraftRegistration': 'AIRCRAFT-REGISTRATION',
+      'aircraftMakeModel': 'AIRCRAFT',
+      'insuranceCompany': 'INSURANCE-COMPANY',
+      'insuranceAddress': 'INSURANCE-ADDRESS',
+      'insuranceCity': 'INSURANCE-CITY',
+      'insuranceState': 'INSURANCE-STATE',
+      'insuranceZip': 'INSURANCE-ZIP',
+      'policyNumber': 'INSURANCE-POLICY-NUMBER',
+      'policyExpiry': 'INSURANCE-EXPIRATION',
+      'formattedCoverage': 'INSURANCE-COVERAGE',
+      'feeFormatted': 'ANNUAL-FEE'
+    };
+    
+    let converted = template;
+    
+    // Replace {{field}} with [FIELD]
+    Object.entries(fieldMap).forEach(([mustacheField, tagField]) => {
+      const regex = new RegExp(`{{${mustacheField}}}`, 'g');
+      converted = converted.replace(regex, `[${tagField}]`);
+    });
+    
+    // Handle conditional sections - remove for e-signature format
+    converted = converted.replace(/{{#if companyName}}.*?{{\/if}}/gs, '[COMPANY-NAME]');
+    converted = converted.replace(/{{#each additionalInsureds}}.*?{{\/each}}/gs, '[ADDITIONAL-INSUREDS]');
+    
+    return converted;
+  },
+
   // Generate complete agreement from form data
   generate: (agreementData) => {
     try {
@@ -202,25 +242,61 @@ export const AgreementTemplate = {
       // Replace placeholders with actual data
       let agreement = AgreementTemplate.template;
       
-      // Simple template replacement (we'll enhance this for conditional logic)
-      Object.keys(processedData).forEach(key => {
-        const placeholder = new RegExp(`{{${key}}}`, 'g');
-        agreement = agreement.replace(placeholder, processedData[key] || '');
-      });
-      
-      // Handle conditional company name
-      const companyCondition = /{{#if companyName}}(.*?){{\/if}}/g;
-      agreement = agreement.replace(companyCondition, (match, content) => {
-        return processedData.companyName ? content : '';
-      });
-      
-      // Handle additional insureds list
-      const insureds = processedData.additionalInsureds || [];
-      let insuredsHtml = '';
-      insureds.forEach((insured, index) => {
-        insuredsHtml += `<li>${insured}</li>`;
-      });
-      agreement = agreement.replace(/{{#each additionalInsureds}}.*?{{\/each}}/s, insuredsHtml);
+      if (AppConfig.templateFormat === 'esignature') {
+        // Convert template to use [FIELD] format for e-signature compatibility
+        agreement = AgreementTemplate.convertToESignatureFormat(agreement);
+        
+        // Build additional insureds as formatted text
+        const insureds = processedData.additionalInsureds || [];
+        const insuredsText = insureds.map((insured, index) => `${index + 1}. ${insured}`).join('\n');
+        
+        // Replace with actual values using the field map
+        const replacements = {
+          'START-DATE': processedData.agreementDate,
+          'END-DATE': processedData.endDate,
+          'LICENSEE': processedData.licenseeName,
+          'COMPANY-NAME': processedData.companyName || '',
+          'PHONE': processedData.phone,
+          'EMAIL': processedData.email,
+          'AIRCRAFT-REGISTRATION': processedData.aircraftRegistration || 'N/A',
+          'AIRCRAFT': processedData.aircraftMakeModel,
+          'INSURANCE-COMPANY': processedData.insuranceCompany,
+          'INSURANCE-ADDRESS': processedData.insuranceAddress,
+          'INSURANCE-CITY': processedData.insuranceCity,
+          'INSURANCE-STATE': processedData.insuranceState,
+          'INSURANCE-ZIP': processedData.insuranceZip,
+          'INSURANCE-POLICY-NUMBER': processedData.policyNumber,
+          'INSURANCE-EXPIRATION': processedData.policyExpiry,
+          'INSURANCE-COVERAGE': processedData.formattedCoverage,
+          'ANNUAL-FEE': processedData.feeFormatted,
+          'ADDITIONAL-INSUREDS': insuredsText
+        };
+        
+        Object.entries(replacements).forEach(([tag, value]) => {
+          const regex = new RegExp(`\\[${tag}\\]`, 'g');
+          agreement = agreement.replace(regex, value || '');
+        });
+      } else {
+        // Use original {{field}} format
+        Object.keys(processedData).forEach(key => {
+          const placeholder = new RegExp(`{{${key}}}`, 'g');
+          agreement = agreement.replace(placeholder, processedData[key] || '');
+        });
+        
+        // Handle conditional company name
+        const companyCondition = /{{#if companyName}}(.*?){{\/if}}/g;
+        agreement = agreement.replace(companyCondition, (match, content) => {
+          return processedData.companyName ? content : '';
+        });
+        
+        // Handle additional insureds list
+        const insureds = processedData.additionalInsureds || [];
+        let insuredsHtml = '';
+        insureds.forEach((insured, index) => {
+          insuredsHtml += `<li>${insured}</li>`;
+        });
+        agreement = agreement.replace(/{{#each additionalInsureds}}.*?{{\/each}}/s, insuredsHtml);
+      }
       
       return agreement;
       

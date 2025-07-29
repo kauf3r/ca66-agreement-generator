@@ -4,6 +4,7 @@ import { Validators, ValidationHelpers } from './validators.js';
 import { DateCalculator, FeeCalculator, AutoPopulator } from './calculator.js';
 import { UIManager } from './ui.js';
 import { DocumentGenerator } from './generator.js';
+import { PDFGenerator } from './pdf-generator.js';
 
 class AgreementApp {
   constructor() {
@@ -79,6 +80,7 @@ class AgreementApp {
   getFormData() {
     const sanitizedData = {};
     
+    // First, collect data from internal store
     Object.keys(this.formData).forEach(key => {
       const value = this.formData[key];
       if (typeof value === 'string') {
@@ -88,19 +90,65 @@ class AgreementApp {
       }
     });
     
+    // Ensure critical fields are always included from DOM if missing
+    const criticalFields = ['start-date', 'end-date'];
+    criticalFields.forEach(fieldId => {
+      if (!sanitizedData[fieldId]) {
+        const field = document.getElementById(fieldId);
+        if (field && field.value) {
+          sanitizedData[fieldId] = field.value;
+        }
+      }
+    });
+    
+    // If start-date is still missing, use today's date
+    if (!sanitizedData['start-date']) {
+      sanitizedData['start-date'] = DateCalculator.getTodayFormatted();
+    }
+    
+    // If end-date is still missing but we have start-date, calculate it
+    if (!sanitizedData['end-date'] && sanitizedData['start-date']) {
+      const endDate = DateCalculator.addOneYear(new Date(sanitizedData['start-date']));
+      sanitizedData['end-date'] = DateCalculator.formatDateForInput(endDate);
+    }
+    
     return sanitizedData;
   }
   
   // Initialize auto-population features
   initializeAutoPopulation() {
-    // Set today's date as start date
+    // Set today's date as start date (this will trigger change event)
     AutoPopulator.setStartDate();
+    
+    // Calculate and set end date based on start date (this will trigger change event)  
+    const startDate = DateCalculator.getTodayFormatted();
+    AutoPopulator.updateEndDate(startDate);
     
     // Display the annual fee
     AutoPopulator.updateFeeDisplay();
     
     // Set up automatic end date calculation
     this.setupEndDateCalculation();
+    
+    // Force update form data with current DOM values after auto-population
+    setTimeout(() => {
+      this.syncFormDataWithDOM();
+    }, 100);
+  }
+  
+  // Sync form data with current DOM values
+  syncFormDataWithDOM() {
+    const form = document.getElementById('agreement-form');
+    if (!form) return;
+    
+    const fields = form.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+      if (field.name) {
+        this.updateFormData(field);
+      }
+    });
+    
+    console.log('Form data synced with DOM:', this.formData);
   }
   
   // Set up automatic end date calculation when insurance expiry changes
@@ -133,10 +181,26 @@ class AgreementApp {
       });
     }
     
-    // Listen for agreement generation event from UI
+    // Listen for HTML agreement generation event
     document.addEventListener('generateAgreement', (e) => {
-      console.log('Generate agreement event received');
-      this.handleFormSubmission();
+      console.log('HTML Agreement generation requested');
+      if (e.detail.formValid) {
+        this.generateHTMLAgreement();
+      }
+    });
+    
+    // Listen for PDF generation event
+    document.addEventListener('generatePDF', (e) => {
+      console.log('PDF Agreement generation requested');
+      if (e.detail.formValid) {
+        this.generatePDFAgreement();
+      }
+    });
+    
+    // Listen for PDF download event
+    document.addEventListener('downloadPDF', (e) => {
+      console.log('PDF download requested');
+      this.downloadPDFAgreement();
     });
   }
   
@@ -244,6 +308,120 @@ class AgreementApp {
       progress: UIManager.calculateProgress(),
       isFormValid: UIManager.isFormValid()
     };
+  }
+  
+  
+  // Generate HTML agreement (existing functionality)
+  async generateHTMLAgreement() {
+    try {
+      const formData = this.getFormData();
+      console.log('Generating HTML agreement with data:', formData);
+      
+      // Generate the agreement using DocumentGenerator
+      const agreementHTML = await DocumentGenerator.generateAgreement(formData);
+      
+      // Show the preview
+      const previewSection = document.getElementById('agreement-preview');
+      const contentDiv = document.getElementById('agreement-content');
+      
+      if (previewSection && contentDiv) {
+        contentDiv.innerHTML = agreementHTML;
+        previewSection.hidden = false;
+        
+        // Scroll to preview
+        previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      
+      console.log('HTML agreement generated successfully');
+    } catch (error) {
+      console.error('Failed to generate HTML agreement:', error);
+      alert('Failed to generate agreement. Please check all fields and try again.');
+    }
+  }
+  
+  // Generate PDF agreement
+  async generatePDFAgreement() {
+    try {
+      const formData = this.getFormData();
+      console.log('Generating PDF agreement with data:', formData);
+      
+      // Validate data for PDF generation
+      const validation = PDFGenerator.validatePDFData(formData);
+      if (!validation.isValid) {
+        console.error('PDF validation failed:', validation.message);
+        alert('PDF generation failed: ' + validation.message);
+        return;
+      }
+      
+      // Show loading state
+      const generatePdfButton = document.getElementById('generate-pdf');
+      if (generatePdfButton) {
+        generatePdfButton.textContent = 'Generating PDF...';
+        generatePdfButton.disabled = true;
+      }
+      
+      // Generate PDF
+      const pdfBytes = await PDFGenerator.generateAgreementPDF(formData);
+      console.log('PDF generated successfully, size:', pdfBytes.length, 'bytes');
+      
+      // Store PDF bytes for potential download
+      this.generatedPDFBytes = pdfBytes;
+      
+      // Preview the PDF in a new tab
+      await PDFGenerator.previewPDF(pdfBytes);
+      
+      // Show success message
+      alert('PDF generated successfully! Check the new tab to view your agreement.');
+      
+      // Reset button state
+      if (generatePdfButton) {
+        generatePdfButton.textContent = 'Generate PDF Agreement';
+        generatePdfButton.disabled = false;
+      }
+      
+      console.log('PDF agreement generation completed');
+    } catch (error) {
+      console.error('Failed to generate PDF agreement:', error);
+      alert('Failed to generate PDF agreement: ' + error.message);
+      
+      // Reset button state
+      const generatePdfButton = document.getElementById('generate-pdf');
+      if (generatePdfButton) {
+        generatePdfButton.textContent = 'Generate PDF Agreement';
+        generatePdfButton.disabled = false;
+      }
+    }
+  }
+  
+  // Download PDF agreement
+  async downloadPDFAgreement() {
+    try {
+      // If we have previously generated PDF bytes, use those
+      if (this.generatedPDFBytes) {
+        console.log('Downloading previously generated PDF');
+        await PDFGenerator.downloadPDF(this.generatedPDFBytes);
+        return;
+      }
+      
+      // Otherwise, generate new PDF
+      const formData = this.getFormData();
+      console.log('Generating and downloading PDF agreement');
+      
+      // Generate PDF
+      const pdfBytes = await PDFGenerator.generateAgreementPDF(formData);
+      
+      // Store for future use
+      this.generatedPDFBytes = pdfBytes;
+      
+      // Download the PDF
+      await PDFGenerator.downloadPDF(pdfBytes);
+      
+      console.log('PDF downloaded successfully');
+      
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Failed to download PDF: ' + error.message);
+    }
   }
   
   // Reset application to initial state

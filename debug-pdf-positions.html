@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Position Debug Tool</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-output { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .position-info { margin: 5px 0; padding: 5px; background: #e8f4f8; border-left: 3px solid #2196F3; }
+        button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>PDF Position Debug Tool</h1>
+    <p>This tool helps determine the correct positions for text replacement in the CA-66 Agreement template.</p>
+    
+    <label>Page to Debug: 
+        <select id="pageSelect" onchange="updatePageSelection()">
+            <option value="1">Page 1</option>
+            <option value="2">Page 2</option>
+            <option value="3">Page 3</option>
+            <option value="4">Page 4</option>
+            <option value="5">Page 5</option>
+            <option value="all">All Pages</option>
+        </select>
+    </label>
+    <br><br>
+    
+    <button onclick="generateDebugPDF()">Generate Debug PDF with Markers</button>
+    <button onclick="showCurrentPositions()">Show Current Position Config</button>
+    <button onclick="generateTestPDF()">Generate Test PDF with Sample Data</button>
+    <button onclick="openPositionEditor()">Open Position Editor</button>
+    
+    <div id="output" class="debug-output"></div>
+
+    <script type="module">
+        import { PDFPositionConfig } from './assets/js/pdf-position-config.js';
+        
+        let selectedPage = 1;
+        
+        window.updatePageSelection = function() {
+            const pageSelect = document.getElementById('pageSelect');
+            selectedPage = pageSelect.value;
+            console.log('Selected page:', selectedPage);
+        };
+        
+        window.generateDebugPDF = async function() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Generating debug PDF...</p>';
+            
+            try {
+                const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                
+                // Load the template
+                const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf';
+                const response = await fetch(templatePath);
+                const templateBytes = await response.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(templateBytes);
+                
+                // Get all pages
+                const pages = pdfDoc.getPages();
+                console.log(`PDF has ${pages.length} page(s)`);
+                
+                // Embed font
+                const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                
+                // Process selected pages
+                const pagesToProcess = selectedPage === 'all' 
+                    ? pages.map((_, i) => i + 1)
+                    : [parseInt(selectedPage)];
+                
+                pagesToProcess.forEach(pageNum => {
+                    if (pageNum <= pages.length) {
+                        const page = pages[pageNum - 1];
+                        const { width, height } = page.getSize();
+                        
+                        console.log(`Processing page ${pageNum}: ${width} x ${height}`);
+                        
+                        // Add page number label
+                        page.drawText(`Page ${pageNum}`, {
+                            x: 10,
+                            y: height - 20,
+                            size: 12,
+                            font: font,
+                            color: rgb(0, 0, 1), // Blue
+                        });
+                        
+                        // Add position markers for each configured placeholder
+                        const placeholders = PDFPositionConfig.getPlaceholdersForPage(pageNum);
+                        console.log(`Found ${placeholders.length} placeholders for page ${pageNum}`);
+                        
+                        placeholders.forEach(({ placeholder, originalPlaceholder, x, y, size, description }) => {
+                            const displayName = originalPlaceholder || placeholder;
+                            
+                            // Draw a red circle to mark the position
+                            page.drawCircle({
+                                x: x,
+                                y: y,
+                                size: 3,
+                                color: rgb(1, 0, 0), // Red marker
+                            });
+                            
+                            // Draw coordinate text
+                            page.drawText(`${displayName}\n(${x}, ${y})`, {
+                                x: x + 5,
+                                y: y + 5,
+                                size: 6,
+                                font: font,  
+                                color: rgb(1, 0, 0), // Red text
+                            });
+                        });
+                        
+                        // Add grid lines for reference
+                        for (let x = 0; x < width; x += 50) {
+                            page.drawLine({
+                                start: { x: x, y: 0 },
+                                end: { x: x, y: height },
+                                thickness: 0.5,
+                                color: rgb(0.9, 0.9, 0.9), // Light gray
+                            });
+                        }
+                        
+                        for (let y = 0; y < height; y += 50) {
+                            page.drawLine({
+                                start: { x: 0, y: y },
+                                end: { x: width, y: y },
+                                thickness: 0.5,
+                                color: rgb(0.9, 0.9, 0.9), // Light gray
+                            });
+                        }
+                    } else {
+                        console.warn(`Page ${pageNum} does not exist in PDF (only ${pages.length} pages)`);
+                    }
+                });
+                
+                // Save and download
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'debug-positions.pdf';
+                link.click();
+                
+                output.innerHTML = '<p class="success">✅ Debug PDF generated! Check the downloaded file to see position markers.</p>';
+                
+            } catch (error) {
+                console.error('Debug PDF generation failed:', error);
+                output.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        };
+        
+        window.showCurrentPositions = function() {
+            const output = document.getElementById('output');
+            
+            let html = '<h3>Current Position Configuration:</h3>';
+            
+            if (selectedPage === 'all') {
+                // Show all pages
+                for (let pageNum = 1; pageNum <= 5; pageNum++) {
+                    const placeholders = PDFPositionConfig.getPlaceholdersForPage(pageNum);
+                    if (placeholders.length > 0) {
+                        html += `<h4>Page ${pageNum}:</h4>`;
+                        placeholders.forEach(({ placeholder, originalPlaceholder, x, y, size, maxWidth, description }) => {
+                            const displayName = originalPlaceholder || placeholder;
+                            const isMultiple = placeholder !== originalPlaceholder;
+                            
+                            html += `<div class="position-info">
+                                <strong>${displayName}</strong>${isMultiple ? ` (Position ${placeholder.split('_')[1]})` : ''}<br>
+                                Position: (${x}, ${y})<br>
+                                Size: ${size}px, Max Width: ${maxWidth}px<br>
+                                Description: ${description}
+                            </div>`;
+                        });
+                    }
+                }
+            } else {
+                // Show selected page
+                const pageNum = parseInt(selectedPage);
+                const placeholders = PDFPositionConfig.getPlaceholdersForPage(pageNum);
+                
+                html += `<h4>Page ${pageNum}:</h4>`;
+                if (placeholders.length === 0) {
+                    html += '<p><em>No placeholders configured for this page.</em></p>';
+                } else {
+                    placeholders.forEach(({ placeholder, originalPlaceholder, x, y, size, maxWidth, description }) => {
+                        const displayName = originalPlaceholder || placeholder;
+                        const isMultiple = placeholder !== originalPlaceholder;
+                        
+                        html += `<div class="position-info">
+                            <strong>${displayName}</strong>${isMultiple ? ` (Position ${placeholder.split('_')[1]})` : ''}<br>
+                            Position: (${x}, ${y})<br>
+                            Size: ${size}px, Max Width: ${maxWidth}px<br>
+                            Description: ${description}
+                        </div>`;
+                    });
+                }
+            }
+            
+            output.innerHTML = html;
+        };
+        
+        window.generateTestPDF = async function() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Generating test PDF with sample data...</p>';
+            
+            try {
+                // Import the PDF generator
+                const { PDFLibGenerator } = await import('./assets/js/pdf-lib-generator.js');
+                
+                // Create sample form data
+                const sampleFormData = {
+                    'licensee-name': 'John Doe',
+                    'phone': '555-123-4567',
+                    'email': 'john.doe@example.com',
+                    'aircraft-registration': 'N12345',
+                    'aircraft-make-model': 'Cessna 172',
+                    'insurance-company': 'Aviation Insurance Co',
+                    'policy-number': 'POL-123456',
+                    'policy-expiry': '2025-12-31',
+                    'coverage-amount': 1000000,
+                    'insurance-address': '123 Insurance St',
+                    'insurance-city': 'Anytown',
+                    'insurance-state': 'CA',
+                    'insurance-zip': '12345',
+                    'start-date': '2025-01-01',
+                    'end-date': '2026-01-01'
+                };
+                
+                // Generate PDF with sample data
+                const pdfBytes = await PDFLibGenerator.generateFilledPDF(sampleFormData);
+                
+                // Download the PDF
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'test-filled-agreement.pdf';
+                link.click();
+                
+                output.innerHTML = '<p class="success">✅ Test PDF generated! Check the downloaded file to see how the current positions look with real data.</p>';
+                
+            } catch (error) {
+                console.error('Test PDF generation failed:', error);
+                output.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        };
+        
+        window.openPositionEditor = function() {
+            const output = document.getElementById('output');
+            const placeholders = PDFPositionConfig.getPlaceholdersForPage(1);
+            
+            let html = '<h3>Position Editor</h3>';
+            html += '<p>Adjust positions below and click "Generate Updated Config" to see the changes:</p>';
+            html += '<div id="position-editor">';
+            
+            placeholders.forEach(({ placeholder, x, y, size, maxWidth, description }) => {
+                const cleanId = placeholder.replace(/[\[\]]/g, '');
+                html += `
+                    <div class="position-info" style="margin: 10px 0; padding: 10px; border: 1px solid #ddd;">
+                        <strong>${placeholder}</strong> - ${description}<br>
+                        X: <input type="number" id="x_${cleanId}" value="${x}" style="width: 60px; margin: 2px;">
+                        Y: <input type="number" id="y_${cleanId}" value="${y}" style="width: 60px; margin: 2px;">
+                        Size: <input type="number" id="size_${cleanId}" value="${size}" style="width: 50px; margin: 2px;">
+                        Max Width: <input type="number" id="width_${cleanId}" value="${maxWidth}" style="width: 60px; margin: 2px;">
+                    </div>`;
+            });
+            
+            html += '</div>';
+            html += '<button onclick="generateUpdatedConfig()" style="margin-top: 10px;">Generate Updated Config</button>';
+            html += '<button onclick="generateTestWithUpdates()" style="margin-top: 10px;">Test Updated Positions</button>';
+            
+            output.innerHTML = html;
+        };
+        
+        window.generateUpdatedConfig = function() {
+            const placeholders = PDFPositionConfig.getPlaceholdersForPage(1);
+            let configCode = `// Updated Position Configuration\nexport const UpdatedPDFPositionConfig = {\n  placeholders: {\n`;
+            
+            placeholders.forEach(({ placeholder, description }) => {
+                const cleanId = placeholder.replace(/[\[\]]/g, '');
+                const x = document.getElementById(`x_${cleanId}`).value;
+                const y = document.getElementById(`y_${cleanId}`).value;
+                const size = document.getElementById(`size_${cleanId}`).value;
+                const maxWidth = document.getElementById(`width_${cleanId}`).value;
+                
+                configCode += `    '${placeholder}': {\n`;
+                configCode += `      page: 1,\n`;
+                configCode += `      x: ${x},\n`;
+                configCode += `      y: ${y},\n`;
+                configCode += `      size: ${size},\n`;
+                configCode += `      maxWidth: ${maxWidth},\n`;
+                configCode += `      description: '${description}'\n`;
+                configCode += `    },\n`;
+            });
+            
+            configCode += `  }\n};`;
+            
+            const output = document.getElementById('output');
+            output.innerHTML = `<h3>Updated Configuration Code:</h3><pre style="background: #f5f5f5; padding: 15px; overflow-x: auto;">${configCode}</pre><p><em>Copy this code and update your pdf-position-config.js file</em></p>`;
+        };
+    </script>
+</body>
+</html>

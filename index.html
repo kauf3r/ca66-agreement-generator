@@ -191,8 +191,10 @@
                             </div>
                             <div class="form-group">
                                 <label for="insurance-state">State *</label>
-                                <input type="text" id="insurance-state" name="insurance-state" placeholder="MD" maxlength="2" pattern="[A-Z]{2}" required>
-                                <small>Enter 2-letter state abbreviation (e.g., MD, CA, TX)</small>
+                                <select id="insurance-state" name="insurance-state" required>
+                                    <option value="">Select State...</option>
+                                </select>
+                                <small>Select the state where your insurance company is located</small>
                             </div>
                             <div class="form-group">
                                 <label for="insurance-zip">ZIP Code *</label>
@@ -284,6 +286,7 @@
                 <div class="form-actions">
                     <button type="button" id="clear-form" class="btn btn-secondary">Clear Form</button>
                     <button type="submit" id="generate-agreement" class="btn btn-primary" disabled>Generate Agreement</button>
+                    <button type="button" id="generate-pdf" class="btn btn-primary" disabled>Generate PDF Agreement</button>
                 </div>
             </form>
 
@@ -296,6 +299,7 @@
                 <div class="preview-actions">
                     <button type="button" id="edit-agreement" class="btn btn-secondary">Edit Details</button>
                     <button type="button" id="print-agreement" class="btn btn-primary">Print Agreement</button>
+                    <button type="button" id="download-pdf" class="btn btn-primary">Download PDF Agreement</button>
                 </div>
             </section>
         </div>
@@ -320,11 +324,15 @@
         </div>
     </footer>
 
+    <!-- PDF Library -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
     <!-- JavaScript Modules -->
     <script type="module" src="assets/js/config.js"></script>
     <script type="module" src="assets/js/validators.js"></script>
     <script type="module" src="assets/js/calculator.js"></script>
     <script type="module" src="assets/js/template.js"></script>
+    <script type="module" src="assets/js/pdf-position-config.js"></script>
     <script type="module" src="assets/js/generator.js"></script>
     <script type="module" src="assets/js/ui.js"></script>
     <script type="module" src="assets/js/app.js"></script>

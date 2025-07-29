@@ -1,5 +1,5 @@
 // UI Interactions - Real-time Form Feedback System
-import { Validators } from './validators.js';
+import { Validators, ValidationHelpers } from './validators.js';
 import { DateCalculator, AutoPopulator } from './calculator.js';
 
 export const UIManager = {
@@ -213,10 +213,16 @@ export const UIManager = {
       }
     });
     
-    // Enable/disable generate button
+    // Enable/disable generate buttons
     const generateButton = document.getElementById('generate-agreement');
+    const generatePdfButton = document.getElementById('generate-pdf');
+    
     if (generateButton) {
       generateButton.disabled = !isValid;
+    }
+    
+    if (generatePdfButton) {
+      generatePdfButton.disabled = !isValid;
     }
     
     return isValid;
@@ -225,9 +231,12 @@ export const UIManager = {
   // Update button state based on form validation (without triggering validation)
   updateButtonState: () => {
     const generateButton = document.getElementById('generate-agreement');
+    const generatePdfButton = document.getElementById('generate-pdf');
+    
+    // Check validation state without re-running validations
+    const isValid = UIManager.checkFormValidationState();
+    
     if (generateButton) {
-      // Check validation state without re-running validations
-      const isValid = UIManager.checkFormValidationState();
       generateButton.disabled = !isValid;
       
       if (isValid) {
@@ -236,6 +245,18 @@ export const UIManager = {
       } else {
         generateButton.classList.add('disabled');
         generateButton.setAttribute('title', 'Complete all required fields to generate agreement');
+      }
+    }
+    
+    if (generatePdfButton) {
+      generatePdfButton.disabled = !isValid;
+      
+      if (isValid) {
+        generatePdfButton.classList.remove('disabled');
+        generatePdfButton.setAttribute('title', 'Generate PDF agreement');
+      } else {
+        generatePdfButton.classList.add('disabled');
+        generatePdfButton.setAttribute('title', 'Complete all required fields to generate PDF agreement');
       }
     }
   },
@@ -311,6 +332,9 @@ export const UIManager = {
     AutoPopulator.setStartDate();
     AutoPopulator.updateFeeDisplay();
     
+    // Populate state dropdown
+    ValidationHelpers.populateStateDropdown('insurance-state');
+    
     // Set up real-time validation for all form fields
     UIManager.setupRealTimeValidation();
     
@@ -363,6 +387,8 @@ export const UIManager = {
   setupButtonHandlers: () => {
     const clearButton = document.getElementById('clear-form');
     const generateButton = document.getElementById('generate-agreement');
+    const generatePdfButton = document.getElementById('generate-pdf');
+    const downloadPdfButton = document.getElementById('download-pdf');
     const printButton = document.getElementById('print-agreement');
     const editButton = document.getElementById('edit-agreement');
     
@@ -384,6 +410,35 @@ export const UIManager = {
           console.log('Form validation failed');
           UIManager.scrollToFirstError();
         }
+      });
+    }
+    
+    if (generatePdfButton) {
+      generatePdfButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (UIManager.isFormValid()) {
+          console.log('Form is valid, generating PDF agreement...');
+          // Trigger PDF generation
+          const generatePdfEvent = new CustomEvent('generatePDF', {
+            detail: { formValid: true }
+          });
+          document.dispatchEvent(generatePdfEvent);
+        } else {
+          console.log('Form validation failed');
+          UIManager.scrollToFirstError();
+        }
+      });
+    }
+    
+    if (downloadPdfButton) {
+      downloadPdfButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Downloading PDF agreement...');
+        // Trigger PDF download
+        const downloadPdfEvent = new CustomEvent('downloadPDF', {
+          detail: { fromPreview: true }
+        });
+        document.dispatchEvent(downloadPdfEvent);
       });
     }
     
