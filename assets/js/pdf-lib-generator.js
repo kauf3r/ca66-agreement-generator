@@ -19,21 +19,12 @@ export class PDFLibGenerator {
       // Import pdf-lib dynamically (it's loaded via CDN)
       const { PDFDocument, rgb } = PDFLib;
       
-      // First, try the fillable form template if it exists
-      let templatePath = 'assets/examples/CA66-Agreement-Form.pdf';
-      let templateBytes;
-      let useFillableForm = true;
-      
-      try {
-        templateBytes = await this.fetchPDFTemplate(templatePath);
-        console.log('✅ Fillable form template found, using form field approach');
-      } catch (error) {
-        console.log('⚠️  Fillable form template not found, falling back to text overlay template');
-        // Fall back to the text overlay template
-        templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
-        templateBytes = await this.fetchPDFTemplate(templatePath);
-        useFillableForm = false;
-      }
+      // TEMPORARY: Force July29 text overlay template for fine-tuning
+      console.log('🚨🚨🚨 FORCED MODE ACTIVE: Using July29 9-page text overlay template 🚨🚨🚨');
+      let templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
+      let templateBytes = await this.fetchPDFTemplate(templatePath);
+      let useFillableForm = false;
+      console.log('🚨 Template loaded. Should be 9 pages, not fillable form! 🚨');
       
       // Load the PDF document
       const pdfDoc = await PDFDocument.load(templateBytes);

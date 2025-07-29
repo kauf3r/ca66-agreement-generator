@@ -53,18 +53,18 @@ export const DateCalculator = {
     return day === 0 || day === 6; // Sunday or Saturday
   },
   
-  // Format date for display (DD/MM/YYYY)
+  // Format date for display (MM/DD/YYYY)
   formatDateForDisplay: (date) => {
     if (!date) return '';
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
     
-    // Format as DD/MM/YYYY
+    // Format as MM/DD/YYYY (US format)
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
     
-    return `${day}/${month}/${year}`;
+    return `${month}/${day}/${year}`;
   },
   
   // Format date for HTML date input (YYYY-MM-DD)

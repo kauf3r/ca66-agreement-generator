@@ -29,9 +29,9 @@ export const PDFPositionConfig = {
     '[LICENSEE-NAME]': { 
       page: 1, 
       x: 260, 
-      y: 675, 
-      size: 11,
-      maxWidth: 75,
+      y: 672, 
+      size: 10,
+      maxWidth: 120,
       description: 'Licensee full name in header section'
     },
     
@@ -40,15 +40,15 @@ export const PDFPositionConfig = {
         page: 3, 
         x: 140, 
         y: 385, 
-        size: 11,
-        maxWidth: 75,
+        size: 10,
+        maxWidth: 120,
         description: 'Licensee name on page 3 insurance section'
       },
       { 
         page: 4, 
-        x: 350, 
-        y: 465, 
-        size: 11,
+        x: 355, 
+        y: 468, 
+        size: 10,
         maxWidth: 200,
         description: 'Licensee name on page 4'
       },
@@ -56,7 +56,7 @@ export const PDFPositionConfig = {
         page: 5, 
         x: 100, 
         y: 162, 
-        size: 11,
+        size: 10,
         maxWidth: 200,
         description: 'Licensee name on page 5'
       }
@@ -65,17 +65,17 @@ export const PDFPositionConfig = {
     '[PHONE]': { 
       page: 4, 
       x: 360, 
-      y: 440, 
-      size: 11,
+      y: 442, 
+      size: 10,
       maxWidth: 150,
       description: 'Phone number on page 4'
     },
     
     '[EMAIL]': { 
       page: 4, 
-      x: 350, 
-      y: 386, 
-      size: 11,
+      x: 355, 
+      y: 388, 
+      size: 10,
       maxWidth: 250,
       description: 'Email address on page 4'
     },
@@ -84,84 +84,84 @@ export const PDFPositionConfig = {
     
     '[AIRCRAFT-MAKE-MODEL]': { 
       page: 1, 
-      x: 110, 
-      y: 250, 
-      size: 11,
-      maxWidth: 100,
+      x: 103, 
+      y: 248, 
+      size: 10,
+      maxWidth: 180,
       description: 'Aircraft make and model'
     },
     
     // Insurance Information Section
     '[INSURANCE-COMPANY]': { 
       page: 3, 
-      x: 140, 
-      y: 305, 
-      size: 11,
-      maxWidth: 75,
+      x: 145, 
+      y: 308, 
+      size: 10,
+      maxWidth: 150,
       description: 'Insurance company name'
     },
     
     '[POLICY-NUMBER]': { 
       page: 3, 
-      x: 140, 
-      y: 358, 
-      size: 11,
-      maxWidth: 25,
+      x: 145, 
+      y: 360, 
+      size: 10,
+      maxWidth: 120,
       description: 'Insurance policy number'
     },
     
     '[INSURANCE-PHONE]': { 
       page: 3, 
-      x: 353, 
-      y: 305, 
-      size: 11,
-      maxWidth: 25,
+      x: 355, 
+      y: 308, 
+      size: 10,
+      maxWidth: 100,
       description: 'Insurance company phone number on page 3'
     },
     
     
     '[POLICY-EXPIRY]': { 
       page: 3, 
-      x: 380, 
-      y: 358, 
-      size: 11,
-      maxWidth: 50,
+      x: 385, 
+      y: 360, 
+      size: 10,
+      maxWidth: 80,
       description: 'Insurance policy expiration date'
     },
     
     '[INSURANCE-ADDRESS]': { 
       page: 3, 
-      x: 143, 
-      y: 278, 
-      size: 11,
-      maxWidth: 50,
+      x: 145, 
+      y: 280, 
+      size: 10,
+      maxWidth: 120,
       description: 'Insurance company address'
     },
     
     '[INSURANCE-CITY]': { 
       page: 3, 
-      x: 143, 
-      y: 260, 
-      size: 11,
-      maxWidth: 20,
+      x: 145, 
+      y: 262, 
+      size: 10,
+      maxWidth: 80,
       description: 'Insurance company city'
     },
     
     '[INSURANCE-STATE]': { 
       page: 3, 
-      x: 250, 
-      y: 260, 
-      size: 11,
-      maxWidth: 5,
+      x: 255, 
+      y: 262, 
+      size: 10,
+      maxWidth: 30,
       description: 'Insurance company state'
     },
     
     '[INSURANCE-ZIP]': { 
       page: 3, 
-      x: 300, 
-      y: 260, 
-      size: 11,
-      maxWidth: 10,
+      x: 305, 
+      y: 262, 
+      size: 10,
+      maxWidth: 50,
       description: 'Insurance company ZIP code'
     },
     
@@ -170,27 +170,27 @@ export const PDFPositionConfig = {
       { 
         page: 1, 
         x: 345, 
-        y: 688, 
-        size: 11,
-        maxWidth: 15,
+        y: 685, 
+        size: 10,
+        maxWidth: 80,
         description: 'Agreement start date in main section'
       },
       { 
         page: 1, 
         x: 180, 
-        y: 146, 
-        size: 11,
-        maxWidth: 15,
+        y: 143, 
+        size: 10,
+        maxWidth: 80,
         description: 'Agreement start date in signature section'
       }
     ],
     
     '[END-DATE]': { 
       page: 1, 
-      x: 420, 
-      y: 146, 
-      size: 11,
-      maxWidth: 15,
+      x: 390, 
+      y: 143, 
+      size: 10,
+      maxWidth: 80,
       description: 'Agreement end date on page 1'
     },
     
