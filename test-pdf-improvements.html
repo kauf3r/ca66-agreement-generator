@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CA-66 PDF Generation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196F3; }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .sample-data {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 CA-66 PDF Generation System Test</h1>
+    <p>This page tests the improved PDF generation system with fillable form support.</p>
+
+    <div class="test-section">
+        <h2>📋 System Status Check</h2>
+        <div id="system-status">
+            <p>Checking system components...</p>
+        </div>
+        <button onclick="checkSystemStatus()">🔄 Refresh Status</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 PDF Filler Data Preparation Test</h2>
+        <div class="sample-data">
+            <h3>Sample Form Data:</h3>
+            <pre id="sample-data"></pre>
+        </div>
+        <button onclick="testPDFFillerData()">🔬 Test PDF Data Preparation</button>
+        <div id="pdf-filler-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📄 Template Detection Test</h2>
+        <button onclick="testTemplateDetection()">🔍 Test Template Detection</button>
+        <div id="template-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>⚡ End-to-End PDF Generation Test</h2>
+        <p class="warning">⚠️ This will attempt to generate a test PDF using sample data.</p>
+        <button onclick="testPDFGeneration()" id="pdf-test-btn">🚀 Generate Test PDF</button>
+        <div id="pdf-generation-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Performance Metrics</h2>
+        <div id="performance-metrics">
+            <p>Run tests above to see performance metrics.</p>
+        </div>
+    </div>
+
+    <!-- Include the necessary modules -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFFiller } from './assets/js/pdf-filler.js';
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        import { PDFGenerator } from './assets/js/pdf-generator.js';
+        import { DateCalculator } from './assets/js/calculator.js';
+
+        // Make modules globally available for testing
+        window.PDFFiller = PDFFiller;
+        window.PDFLibGenerator = PDFLibGenerator;
+        window.PDFGenerator = PDFGenerator;
+        window.DateCalculator = DateCalculator;
+
+        // Sample test data
+        window.sampleFormData = {
+            'licensee-name': 'John Doe Pilot',
+            'company-name': 'Skyward Aviation LLC',
+            'phone': '(555) 123-4567',
+            'email': 'john.doe@example.com',
+            'pilot-certificate': 'Commercial',
+            'flight-hours': 350,
+            'aircraft-registration': 'N12345',
+            'aircraft-make-model': 'Cessna 172',
+            'insurance-company': 'Aviation Insurance Co.',
+            'insurance-address': '123 Insurance Way',
+            'insurance-city': 'San Francisco',
+            'insurance-state': 'CA',
+            'insurance-zip': '94105',
+            'insurance-phone': '(555) 987-6543',
+            'policy-number': 'AV-2025-001234',
+            'policy-expiry': '2025-12-31',
+            'coverage-amount': 1000000,
+            'start-date': '2025-01-01',
+            'end-date': '2026-01-01'
+        };
+
+        // Display sample data
+        document.getElementById('sample-data').textContent = JSON.stringify(window.sampleFormData, null, 2);
+
+        // Initialize system status check
+        window.checkSystemStatus();
+    </script>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            element.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        function checkSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            statusDiv.innerHTML = '<p>🔄 Checking system components...</p>';
+
+            const checks = [];
+
+            // Check if modules are loaded
+            checks.push({
+                name: 'PDFFiller Module',
+                status: typeof window.PDFFiller !== 'undefined' ? 'success' : 'error',
+                details: typeof window.PDFFiller !== 'undefined' ? 'Loaded' : 'Not loaded'
+            });
+
+            checks.push({
+                name: 'PDFLibGenerator Module', 
+                status: typeof window.PDFLibGenerator !== 'undefined' ? 'success' : 'error',
+                details: typeof window.PDFLibGenerator !== 'undefined' ? 'Loaded' : 'Not loaded'
+            });
+
+            checks.push({
+                name: 'PDF-lib Library',
+                status: typeof PDFLib !== 'undefined' ? 'success' : 'error',
+                details: typeof PDFLib !== 'undefined' ? 'Loaded from CDN' : 'Not loaded'
+            });
+
+            checks.push({
+                name: 'DateCalculator Module',
+                status: typeof window.DateCalculator !== 'undefined' ? 'success' : 'error',
+                details: typeof window.DateCalculator !== 'undefined' ? 'Loaded' : 'Not loaded'
+            });
+
+            // Display results
+            let html = '<h3>System Component Status:</h3>';
+            checks.forEach(check => {
+                const icon = check.status === 'success' ? '✅' : '❌';
+                const className = check.status;
+                html += `<div class="${className}">${icon} ${check.name}: ${check.details}</div>`;
+            });
+
+            const allGood = checks.every(check => check.status === 'success');
+            if (allGood) {
+                html += '<div class="success"><strong>🎉 All systems ready!</strong></div>';
+            } else {
+                html += '<div class="error"><strong>⚠️ Some components missing. Check console for errors.</strong></div>';
+            }
+
+            statusDiv.innerHTML = html;
+        }
+
+        function testPDFFillerData() {
+            clearLog('pdf-filler-results');
+            log('pdf-filler-results', '🔬 Testing PDF Filler data preparation...', 'info');
+
+            try {
+                const startTime = performance.now();
+                
+                // Test data preparation
+                const pdfData = window.PDFFiller.preparePDFData(window.sampleFormData);
+                log('pdf-filler-results', `✅ PDF data prepared successfully`, 'success');
+                log('pdf-filler-results', `📊 Generated ${Object.keys(pdfData).length} field mappings`, 'info');
+
+                // Test validation
+                const validation = window.PDFFiller.validatePDFData(pdfData);
+                if (validation.isValid) {
+                    log('pdf-filler-results', '✅ PDF data validation passed', 'success');
+                } else {
+                    log('pdf-filler-results', `⚠️ Validation warnings: ${validation.errors.join(', ')}`, 'warning');
+                }
+
+                // Show sample of prepared data
+                const sampleFields = Object.entries(pdfData).slice(0, 5);
+                log('pdf-filler-results', '📋 Sample prepared fields:', 'info');
+                sampleFields.forEach(([key, value]) => {
+                    log('pdf-filler-results', `  • ${key}: "${value}"`, 'info');
+                });
+
+                const endTime = performance.now();
+                log('pdf-filler-results', `⏱️ Processing time: ${(endTime - startTime).toFixed(2)}ms`, 'info');
+
+            } catch (error) {
+                log('pdf-filler-results', `❌ Error testing PDF Filler: ${error.message}`, 'error');
+                console.error('PDF Filler test error:', error);
+            }
+        }
+
+        function testTemplateDetection() {
+            clearLog('template-results');
+            log('template-results', '🔍 Testing PDF template detection...', 'info');
+
+            // Test fillable form template detection
+            fetch('assets/examples/CA66-Agreement-Form.pdf')
+                .then(response => {
+                    if (response.ok) {
+                        log('template-results', '✅ Fillable form template (CA66-Agreement-Form.pdf) found', 'success');
+                        log('template-results', '🎯 System will use fillable form approach', 'success');
+                        return response.arrayBuffer();
+                    } else {
+                        throw new Error(`Template not found (${response.status})`);
+                    }
+                })
+                .then(arrayBuffer => {
+                    log('template-results', `📄 Template size: ${Math.round(arrayBuffer.byteLength / 1024)}KB`, 'info');
+                    
+                    // Test if it's a valid PDF and has form fields
+                    return PDFLib.PDFDocument.load(arrayBuffer);
+                })
+                .then(pdfDoc => {
+                    const form = pdfDoc.getForm();
+                    const fields = form.getFields();
+                    const fieldNames = fields.map(field => field.getName());
+                    
+                    if (fields.length > 0) {
+                        log('template-results', `✅ Found ${fields.length} form fields in template`, 'success');
+                        log('template-results', `📋 Fields: ${fieldNames.slice(0, 5).join(', ')}${fieldNames.length > 5 ? '...' : ''}`, 'info');
+                    } else {
+                        log('template-results', '⚠️ No form fields found - will use text overlay fallback', 'warning');
+                    }
+                })
+                .catch(error => {
+                    log('template-results', `⚠️ Fillable template not found: ${error.message}`, 'warning');
+                    log('template-results', '🔄 Testing fallback template...', 'info');
+                    
+                    // Test fallback template
+                    return fetch('assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf')
+                        .then(response => {
+                            if (response.ok) {
+                                log('template-results', '✅ Fallback template found', 'success');
+                                log('template-results', '📝 System will use text overlay approach', 'info');
+                            } else {
+                                log('template-results', '❌ No templates available!', 'error');
+                            }
+                        });
+                });
+        }
+
+        function testPDFGeneration() {
+            const btn = document.getElementById('pdf-test-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating PDF...';
+
+            clearLog('pdf-generation-results');
+            log('pdf-generation-results', '🚀 Starting end-to-end PDF generation test...', 'info');
+
+            const startTime = performance.now();
+
+            window.PDFGenerator.generateAgreementPDF(window.sampleFormData)
+                .then(pdfBytes => {
+                    const endTime = performance.now();
+                    const processingTime = endTime - startTime;
+
+                    log('pdf-generation-results', '✅ PDF generated successfully!', 'success');
+                    log('pdf-generation-results', `📄 PDF size: ${Math.round(pdfBytes.length / 1024)}KB`, 'info');
+                    log('pdf-generation-results', `⏱️ Generation time: ${processingTime.toFixed(2)}ms`, 'info');
+
+                    // Update performance metrics
+                    updatePerformanceMetrics(processingTime, pdfBytes.length);
+
+                    // Offer to preview the PDF
+                    const previewBtn = document.createElement('button');
+                    previewBtn.textContent = '👀 Preview Generated PDF';
+                    previewBtn.onclick = () => {
+                        window.PDFGenerator.previewPDF(pdfBytes);
+                    };
+
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.textContent = '💾 Download PDF';
+                    downloadBtn.onclick = () => {
+                        window.PDFGenerator.downloadPDF(pdfBytes, 'test-ca66-agreement.pdf');
+                    };
+
+                    const resultsDiv = document.getElementById('pdf-generation-results');
+                    resultsDiv.appendChild(document.createElement('br'));
+                    resultsDiv.appendChild(previewBtn);
+                    resultsDiv.appendChild(downloadBtn);
+
+                })
+                .catch(error => {
+                    const endTime = performance.now();
+                    const processingTime = endTime - startTime;
+
+                    log('pdf-generation-results', `❌ PDF generation failed: ${error.message}`, 'error');
+                    log('pdf-generation-results', `⏱️ Failed after: ${processingTime.toFixed(2)}ms`, 'info');
+                    console.error('PDF generation error:', error);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Generate Test PDF';
+                });
+        }
+
+        function updatePerformanceMetrics(processingTime, fileSize) {
+            const metricsDiv = document.getElementById('performance-metrics');
+            
+            const html = `
+                <h3>📊 Latest Test Results:</h3>
+                <div class="success">⏱️ Processing Time: <strong>${processingTime.toFixed(2)}ms</strong></div>
+                <div class="info">📄 File Size: <strong>${Math.round(fileSize / 1024)}KB</strong></div>
+                <div class="info">🎯 Target: <3000ms (${processingTime < 3000 ? '✅ Met' : '❌ Exceeded'})</div>
+                <div class="info">💾 Size Efficiency: ${fileSize < 500000 ? '✅ Good' : fileSize < 1000000 ? '⚠️ Acceptable' : '❌ Large'}</div>
+            `;
+            
+            metricsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

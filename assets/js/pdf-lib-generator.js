@@ -5,6 +5,7 @@
 
 import { DateCalculator } from './calculator.js';
 import { PDFPositionConfig } from './pdf-position-config.js';
+import { PDFFiller } from './pdf-filler.js';
 
 export class PDFLibGenerator {
   
@@ -18,31 +19,46 @@ export class PDFLibGenerator {
       // Import pdf-lib dynamically (it's loaded via CDN)
       const { PDFDocument, rgb } = PDFLib;
       
-      // Load the template PDF
-      const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf';
-      const templateBytes = await this.fetchPDFTemplate(templatePath);
+      // First, try the fillable form template if it exists
+      let templatePath = 'assets/examples/CA66-Agreement-Form.pdf';
+      let templateBytes;
+      let useFillableForm = true;
+      
+      try {
+        templateBytes = await this.fetchPDFTemplate(templatePath);
+        console.log('✅ Fillable form template found, using form field approach');
+      } catch (error) {
+        console.log('⚠️  Fillable form template not found, falling back to text overlay template');
+        // Fall back to the text overlay template
+        templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July25.pdf';
+        templateBytes = await this.fetchPDFTemplate(templatePath);
+        useFillableForm = false;
+      }
       
       // Load the PDF document
       const pdfDoc = await PDFDocument.load(templateBytes);
       
-      // Get the form from the PDF
-      const form = pdfDoc.getForm();
-      
-      // Check if form has fields
-      const fields = form.getFields();
-      console.log(`PDF has ${fields.length} form fields`);
-      
-      if (fields.length === 0) {
-        console.log('PDF template has no form fields. Using text replacement method.');
-        // Since this PDF uses text placeholders instead of form fields,
-        // we need to add text overlays at the placeholder positions
-        await this.addTextOverlays(pdfDoc, formData);
+      if (useFillableForm) {
+        // Use the improved form field filling approach
+        await this.fillFormFieldsImproved(pdfDoc, formData);
       } else {
-        console.log('PDF has form fields. Using form field filling method.');
-        // Fill the form fields
-        await this.fillFormFields(form, formData);
-        // Flatten the form to make it non-editable
-        form.flatten();
+        // Get the form from the PDF and check if it has fields
+        const form = pdfDoc.getForm();
+        const fields = form.getFields();
+        console.log(`PDF has ${fields.length} form fields`);
+        
+        if (fields.length === 0) {
+          console.log('PDF template has no form fields. Using text replacement method.');
+          // Since this PDF uses text placeholders instead of form fields,
+          // we need to add text overlays at the placeholder positions
+          await this.addTextOverlays(pdfDoc, formData);
+        } else {
+          console.log('PDF has form fields. Using form field filling method.');
+          // Fill the form fields
+          await this.fillFormFields(form, formData);
+          // Flatten the form to make it non-editable
+          form.flatten();
+        }
       }
       
       // Generate the filled PDF bytes
@@ -163,7 +179,153 @@ export class PDFLibGenerator {
   }
   
   /**
-   * Fill form fields in the PDF
+   * Improved form field filling using PDFFiller integration
+   * @param {PDFDocument} pdfDoc - The PDF document
+   * @param {Object} formData - Form data to fill
+   */
+  static async fillFormFieldsImproved(pdfDoc, formData) {
+    try {
+      const form = pdfDoc.getForm();
+      
+      // Use PDFFiller to prepare the data in the correct format
+      const pdfData = PDFFiller.preparePDFData(formData);
+      console.log('✅ PDF data prepared using PDFFiller:', pdfData);
+      
+      // Validate the PDF data
+      const validation = PDFFiller.validatePDFData(pdfData);
+      if (!validation.isValid) {
+        console.warn('⚠️  PDF data validation warnings:', validation.errors);
+        // Continue anyway but log the issues
+      }
+      
+      // Get all available field names for debugging
+      const fields = form.getFields();
+      const fieldNames = fields.map(field => field.getName());
+      console.log(`📋 Available PDF form fields (${fieldNames.length}):`, fieldNames);
+      
+      // Track successful and failed field mappings
+      let successCount = 0;
+      let failedFields = [];
+      
+      // Try to fill fields using the prepared PDF data
+      Object.entries(pdfData).forEach(([fieldKey, value]) => {
+        // Try different field name variations
+        const fieldVariations = [
+          fieldKey,
+          fieldKey.toLowerCase(),
+          fieldKey.toUpperCase(),
+          fieldKey.replace(/[-_]/g, ' '),
+          fieldKey.replace(/[-_]/g, ''),
+          fieldKey.replace(/\s/g, '-'),
+          fieldKey.replace(/\s/g, '_')
+        ];
+        
+        let fieldFound = false;
+        
+        for (const fieldName of fieldVariations) {
+          try {
+            const field = form.getField(fieldName);
+            if (field) {
+              this.fillSingleField(field, value, fieldName);
+              successCount++;
+              fieldFound = true;
+              break;
+            }
+          } catch (fieldError) {
+            // Field doesn't exist, continue to next variation
+            continue;
+          }
+        }
+        
+        if (!fieldFound) {
+          failedFields.push(fieldKey);
+        }
+      });
+      
+      console.log(`✅ Successfully filled ${successCount} fields`);
+      if (failedFields.length > 0) {
+        console.warn(`⚠️  Could not find fields for: ${failedFields.join(', ')}`);
+      }
+      
+      // Flatten the form to make it non-editable and professional
+      form.flatten();
+      
+      return {
+        success: true,
+        fieldsProcessed: Object.keys(pdfData).length,
+        fieldsFilled: successCount,
+        fieldsFailed: failedFields.length,
+        failedFields
+      };
+      
+    } catch (error) {
+      console.error('❌ Improved form filling error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fill a single form field with appropriate type handling
+   * @param {PDFField} field - The PDF form field
+   * @param {any} value - The value to fill
+   * @param {string} fieldName - Field name for logging
+   */
+  static fillSingleField(field, value, fieldName) {
+    try {
+      // Ensure value is not null/undefined
+      if (value === null || value === undefined) {
+        value = '';
+      }
+      
+      // Handle different field types
+      const fieldType = field.constructor.name;
+      
+      switch (fieldType) {
+        case 'PDFTextField':
+          const textValue = String(value).trim();
+          field.setText(textValue);
+          console.log(`✅ Text field '${fieldName}' filled with: "${textValue}"`);
+          break;
+          
+        case 'PDFCheckBox':
+          const isChecked = Boolean(value) && value !== '' && value !== '0' && value !== 'false';
+          if (isChecked) {
+            field.check();
+            console.log(`✅ Checkbox '${fieldName}' checked`);
+          } else {
+            field.uncheck();
+            console.log(`✅ Checkbox '${fieldName}' unchecked`);
+          }
+          break;
+          
+        case 'PDFDropdown':
+          const selectValue = String(value).trim();
+          field.select(selectValue);
+          console.log(`✅ Dropdown '${fieldName}' selected: "${selectValue}"`);
+          break;
+          
+        case 'PDFRadioGroup':
+          const radioValue = String(value).trim();
+          field.select(radioValue);
+          console.log(`✅ Radio group '${fieldName}' selected: "${radioValue}"`);
+          break;
+          
+        default:
+          console.warn(`⚠️  Unknown field type '${fieldType}' for field '${fieldName}'`);
+          // Try setting as text anyway
+          if (field.setText) {
+            field.setText(String(value));
+          }
+      }
+      
+    } catch (error) {
+      console.warn(`⚠️  Error filling field '${fieldName}':`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Fill form fields in the PDF (legacy method for fallback)
    * @param {PDFForm} form - The PDF form object
    * @param {Object} formData - Form data to fill
    */
