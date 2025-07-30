@@ -1,10 +1,11 @@
-// Main Application - Phase 3 Complete System
+// Main Application - Phase 3 Complete System with Exhibit A Modal
 import { AppConfig } from './config.js';
 import { Validators, ValidationHelpers } from './validators.js';
 import { DateCalculator, FeeCalculator, AutoPopulator } from './calculator.js';
 import { UIManager } from './ui.js';
 import { DocumentGenerator } from './generator.js';
 import { PDFGenerator } from './pdf-generator.js';
+import { ExhibitModal } from './exhibit-modal.js';
 
 class AgreementApp {
   constructor() {
@@ -23,6 +24,9 @@ class AgreementApp {
     // Initialize UI Manager (handles all form interactions and validation)
     UIManager.init();
     
+    // Initialize Exhibit A Modal
+    ExhibitModal.init();
+    
     // Set up main form event listeners
     this.setupFormListeners();
     
@@ -33,7 +37,7 @@ class AgreementApp {
     this.initializeAutoPopulation();
     
     this.isInitialized = true;
-    console.log('CA-66 Agreement Generator - Phase 3 Complete System Initialized');
+    console.log('CA-66 Agreement Generator - Phase 3 Complete System with Exhibit A Modal Initialized');
   }
   
   // Data Collection & Management System

@@ -1,7 +1,8 @@
-// Legal Agreement Template System - Phase 3 Implementation
+// Legal Agreement Template System - Phase 3 Implementation with Exhibit A Module
 import { ValidationHelpers } from './validators.js';
 import { DateCalculator, FeeCalculator } from './calculator.js';
 import { AppConfig } from './config.js';
+import { getExhibitASection } from './exhibit-content.js';
 
 export const AgreementTemplate = {
   // Main agreement template with placeholder variables
@@ -146,46 +147,7 @@ export const AgreementTemplate = {
 
       <footer class="agreement-footer">
         <div class="page-break"></div>
-        <section class="exhibit-a">
-          <h3>EXHIBIT A - AIRPORT RULES AND REGULATIONS</h3>
-          <div class="rules-content">
-            <h4>OPERATIONAL REQUIREMENTS</h4>
-            <ul>
-              <li>All operations must comply with Federal Aviation Regulations</li>
-              <li>Grass field operations only - no paved runway access</li>
-              <li>Single engine reciprocating aircraft only</li>
-              <li>Maximum takeoff weight: 12,500 lbs</li>
-              <li>Minimum pilot experience: 300 total flight hours</li>
-            </ul>
-
-            <h4>OPERATIONAL RESTRICTIONS</h4>
-            <ul>
-              <li><strong>Sabbath Observance:</strong> NO operations Friday sunset to Saturday sunset</li>
-              <li>Daylight operations only unless specifically authorized</li>
-              <li>Weather minimums: VFR conditions required</li>
-              <li>Pattern altitude: 1,000 feet AGL</li>
-              <li>Noise abatement procedures must be followed</li>
-            </ul>
-
-            <h4>SAFETY REQUIREMENTS</h4>
-            <ul>
-              <li>Current medical certificate required</li>
-              <li>Aircraft must be airworthy with current registration</li>
-              <li>Minimum insurance: $1,000,000 liability coverage</li>
-              <li>Emergency contact information must be filed</li>
-              <li>Radio contact required when operations are active</li>
-            </ul>
-
-            <h4>GENERAL PROVISIONS</h4>
-            <ul>
-              <li>Tie-down procedures must be followed</li>
-              <li>No overnight parking without prior approval</li>
-              <li>Fuel and maintenance services not available on-site</li>
-              <li>Licensee responsible for aircraft security</li>
-              <li>Airport operator reserves right to suspend operations for safety</li>
-            </ul>
-          </div>
-        </section>
+${getExhibitASection()}
         
         <div class="document-footer">
           <p><em>CA-66 Airport Usage License Agreement | Generated {{generatedDate}} | Version {{version}}</em></p>

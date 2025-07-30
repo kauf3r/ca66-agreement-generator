@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/layout.css">
     <link rel="stylesheet" href="assets/css/forms.css">
+    <link rel="stylesheet" href="assets/css/modal.css">
     <link rel="stylesheet" href="assets/css/print.css">
     <link rel="stylesheet" href="assets/css/main.css">
     
@@ -302,10 +303,10 @@
                     <button type="button" id="download-pdf" class="btn btn-primary">Download PDF Agreement</button>
                 </div>
             </section>
-        </div>
+ 3       </div>
     </main>
 
-    <!-- Footer -->
+    <!-- Footer -->1
     <footer class="site-footer" role="contentinfo">
         <div class="container">
             <div class="footer-content">
@@ -327,10 +328,34 @@
     <!-- PDF Library -->
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     
+    <!-- Exhibit A Modal -->
+    <div id="exhibit-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description">
+        <div class="modal-container" tabindex="-1">
+            <div class="modal-header">
+                <h3 id="modal-title">Exhibit A - Airport Rules and Regulations</h3>
+                <button class="modal-close" aria-label="Close modal" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="scroll-progress">
+                    <div class="scroll-progress-bar"></div>
+                </div>
+                <div id="modal-description" class="exhibit-content">
+                    <!-- Content will be injected here by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <p class="scroll-notice">Please scroll to read all terms</p>
+                <button class="modal-acknowledge" disabled type="button">I Have Read and Understand</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript Modules -->
     <script type="module" src="assets/js/config.js"></script>
     <script type="module" src="assets/js/validators.js"></script>
     <script type="module" src="assets/js/calculator.js"></script>
+    <script type="module" src="assets/js/exhibit-content.js"></script>
+    <script type="module" src="assets/js/exhibit-modal.js"></script>
     <script type="module" src="assets/js/template.js"></script>
     <script type="module" src="assets/js/pdf-position-config.js"></script>
     <script type="module" src="assets/js/generator.js"></script>

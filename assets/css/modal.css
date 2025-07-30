@@ -1,0 +1,316 @@
+/* Modal Overlay and Container */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-md);
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal-container {
+  transform: scale(1) translateY(0);
+}
+
+/* Modal Header */
+.modal-header {
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+  border-bottom: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.modal-close:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+  transform: scale(1.1);
+}
+
+.modal-close:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Modal Body */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  position: relative;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--color-bg-light);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-light);
+}
+
+/* Exhibit A Content Styling */
+.exhibit-content h4 {
+  color: var(--color-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-sm);
+}
+
+.exhibit-content h4:first-child {
+  margin-top: 0;
+}
+
+.exhibit-content ul {
+  margin: var(--spacing-md) 0;
+  padding-left: var(--spacing-lg);
+}
+
+.exhibit-content li {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.exhibit-content li strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Scroll Progress Indicator */
+.scroll-progress {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  background: var(--color-bg-light);
+  height: 100%;
+}
+
+.scroll-progress-bar {
+  width: 100%;
+  background: var(--color-primary);
+  height: 0%;
+  transition: height 0.2s ease;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-light);
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.scroll-notice {
+  margin: 0;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  font-style: italic;
+  transition: color 0.3s ease;
+}
+
+.scroll-notice.completed {
+  color: var(--color-success);
+}
+
+.modal-acknowledge {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  white-space: nowrap;
+}
+
+.modal-acknowledge:disabled {
+  background: var(--color-border);
+  color: var(--color-text-light);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modal-acknowledge:not(:disabled):hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-acknowledge:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: var(--spacing-sm);
+    align-items: flex-start;
+    padding-top: var(--spacing-md);
+  }
+  
+  .modal-container {
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    padding: var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .modal-header h3 {
+    font-size: 1.3rem;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .modal-body {
+    padding: var(--spacing-md);
+  }
+  
+  .modal-footer {
+    padding: var(--spacing-md);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  
+  .modal-acknowledge {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .scroll-notice {
+    text-align: center;
+    order: -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0;
+    border-radius: 0;
+  }
+  
+  .modal-container {
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .modal-header h3 {
+    font-size: 1.2rem;
+    line-height: 1.4;
+  }
+}
+
+/* Print Styles - Hide Modal */
+@media print {
+  .modal-overlay {
+    display: none !important;
+  }
+}
+
+/* Accessibility Enhancements */
+.modal-overlay[aria-hidden="true"] {
+  display: none;
+}
+
+.modal-container:focus {
+  outline: none;
+}
+
+/* Keyboard Navigation Indicators */
+.modal-close:focus-visible,
+.modal-acknowledge:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-container,
+  .modal-close,
+  .modal-acknowledge,
+  .scroll-progress-bar {
+    transition: none;
+  }
+}
