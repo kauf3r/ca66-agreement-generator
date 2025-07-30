@@ -1,4 +1,4 @@
-// Main Application - Phase 3 Complete System with Exhibit A Modal
+// Main Application - Phase 3 Complete System with Exhibit A Modal and UI Enhancements
 import { AppConfig } from './config.js';
 import { Validators, ValidationHelpers } from './validators.js';
 import { DateCalculator, FeeCalculator, AutoPopulator } from './calculator.js';
@@ -6,6 +6,7 @@ import { UIManager } from './ui.js';
 import { DocumentGenerator } from './generator.js';
 import { PDFGenerator } from './pdf-generator.js';
 import { ExhibitModal } from './exhibit-modal.js';
+import { UIEnhancements } from './ui-enhancements.js';
 
 class AgreementApp {
   constructor() {
@@ -27,6 +28,9 @@ class AgreementApp {
     // Initialize Exhibit A Modal
     ExhibitModal.init();
     
+    // Initialize UI Enhancements (loading states, animations, auto-save)
+    UIEnhancements.init();
+    
     // Set up main form event listeners
     this.setupFormListeners();
     
@@ -37,7 +41,7 @@ class AgreementApp {
     this.initializeAutoPopulation();
     
     this.isInitialized = true;
-    console.log('CA-66 Agreement Generator - Phase 3 Complete System with Exhibit A Modal Initialized');
+    console.log('CA-66 Agreement Generator - Phase 3 Complete System with UI Enhancements Initialized');
   }
   
   // Data Collection & Management System
@@ -210,38 +214,62 @@ class AgreementApp {
   
   // Handle form submission (validation + agreement generation)
   handleFormSubmission() {
+    const submitButton = document.getElementById('generate-agreement');
+    
     console.log('Form submission initiated...');
     
     // Validate entire form
     if (!UIManager.isFormValid()) {
       console.log('Form validation failed - submission blocked');
       UIManager.scrollToFirstError();
+      UIEnhancements.showToast('Please complete all required fields', 'warning');
       return;
     }
     
-    // Get sanitized form data
-    const formData = this.getFormData();
-    console.log('Form data collected:', formData);
-    
-    // Calculate agreement dates
-    const agreementData = this.prepareAgreementData(formData);
-    console.log('Agreement data prepared:', agreementData);
-    
-    // Store for reference
-    this.agreementData = agreementData;
-    
-    // Generate and preview the agreement
-    console.log('🔄 Generating legal agreement...');
     try {
+      // Show loading states
+      UIEnhancements.showButtonLoading(submitButton, 'Generating Agreement...');
+      UIEnhancements.showLoading('Creating Agreement', 'Generating your legal agreement document...');
+      
+      // Get sanitized form data
+      const formData = this.getFormData();
+      console.log('Form data collected:', formData);
+      
+      // Calculate agreement dates
+      const agreementData = this.prepareAgreementData(formData);
+      console.log('Agreement data prepared:', agreementData);
+      
+      // Store for reference
+      this.agreementData = agreementData;
+      
+      // Generate and preview the agreement
+      console.log('🔄 Generating legal agreement...');
       const success = DocumentGenerator.generateAndPreview(agreementData);
+      
+      // Hide loading states
+      UIEnhancements.hideLoading();
+      UIEnhancements.hideButtonLoading(submitButton);
+      
       if (success) {
         console.log('✅ Agreement generated successfully');
+        UIEnhancements.showButtonSuccess(submitButton, 'Agreement Generated!');
+        UIEnhancements.showToast('Agreement generated successfully!', 'success');
+        
+        // Clear saved form progress since form is complete
+        UIEnhancements.clearSavedProgress();
       } else {
         console.error('❌ Agreement generation failed');
+        UIEnhancements.showToast('Agreement generation failed. Please try again.', 'error');
       }
     } catch (error) {
       console.error('❌ Agreement generation error:', error);
-      alert('Failed to generate agreement. Please check your form data and try again.');
+      
+      // Hide loading states
+      UIEnhancements.hideLoading();
+      UIEnhancements.hideButtonLoading(submitButton);
+      
+      // Show error toast
+      UIEnhancements.showToast('Failed to generate agreement. Please check your form data and try again.', 'error');
     }
   }
   
@@ -345,6 +373,8 @@ class AgreementApp {
   
   // Generate PDF agreement
   async generatePDFAgreement() {
+    const generatePdfButton = document.getElementById('generate-pdf');
+    
     try {
       const formData = this.getFormData();
       console.log('Generating PDF agreement with data:', formData);
@@ -353,16 +383,13 @@ class AgreementApp {
       const validation = PDFGenerator.validatePDFData(formData);
       if (!validation.isValid) {
         console.error('PDF validation failed:', validation.message);
-        alert('PDF generation failed: ' + validation.message);
+        UIEnhancements.showToast('PDF generation failed: ' + validation.message, 'error');
         return;
       }
       
-      // Show loading state
-      const generatePdfButton = document.getElementById('generate-pdf');
-      if (generatePdfButton) {
-        generatePdfButton.textContent = 'Generating PDF...';
-        generatePdfButton.disabled = true;
-      }
+      // Show loading states
+      UIEnhancements.showButtonLoading(generatePdfButton, 'Generating PDF...');
+      UIEnhancements.showLoading('Generating PDF', 'Creating your legal agreement document...');
       
       // Generate PDF
       const pdfBytes = await PDFGenerator.generateAgreementPDF(formData);
@@ -374,42 +401,46 @@ class AgreementApp {
       // Preview the PDF in a new tab
       await PDFGenerator.previewPDF(pdfBytes);
       
-      // Show success message
-      alert('PDF generated successfully! Check the new tab to view your agreement.');
+      // Hide loading states
+      UIEnhancements.hideLoading();
+      UIEnhancements.hideButtonLoading(generatePdfButton);
       
-      // Reset button state
-      if (generatePdfButton) {
-        generatePdfButton.textContent = 'Generate PDF Agreement';
-        generatePdfButton.disabled = false;
-      }
+      // Show success animation and toast
+      UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated!');
+      UIEnhancements.showToast('PDF generated successfully! Check the new tab to view your agreement.', 'success');
       
       console.log('PDF agreement generation completed');
     } catch (error) {
       console.error('Failed to generate PDF agreement:', error);
-      alert('Failed to generate PDF agreement: ' + error.message);
       
-      // Reset button state
-      const generatePdfButton = document.getElementById('generate-pdf');
-      if (generatePdfButton) {
-        generatePdfButton.textContent = 'Generate PDF Agreement';
-        generatePdfButton.disabled = false;
-      }
+      // Hide loading states
+      UIEnhancements.hideLoading();
+      UIEnhancements.hideButtonLoading(generatePdfButton);
+      
+      // Show error toast
+      UIEnhancements.showToast('Failed to generate PDF: ' + error.message, 'error');
     }
   }
   
-  // Download PDF agreement
+  // Download PDF agreement with preview option
   async downloadPDFAgreement() {
+    const downloadButton = document.getElementById('download-pdf');
+    
     try {
-      // If we have previously generated PDF bytes, use those
+      // If we have previously generated PDF bytes, show preview first
       if (this.generatedPDFBytes) {
-        console.log('Downloading previously generated PDF');
-        await PDFGenerator.downloadPDF(this.generatedPDFBytes);
+        console.log('PDF already generated, showing preview options');
+        this.showPDFPreviewModal(this.generatedPDFBytes);
         return;
       }
       
       // Otherwise, generate new PDF
       const formData = this.getFormData();
-      console.log('Generating and downloading PDF agreement');
+      console.log('Generating PDF for preview and download');
+      
+      // Show loading states
+      UIEnhancements.showButtonLoading(downloadButton, 'Generating PDF...');
+      UIEnhancements.showLoading('Preparing PDF', 'Generating your PDF for preview...');
       
       // Generate PDF
       const pdfBytes = await PDFGenerator.generateAgreementPDF(formData);
@@ -417,15 +448,91 @@ class AgreementApp {
       // Store for future use
       this.generatedPDFBytes = pdfBytes;
       
-      // Download the PDF
-      await PDFGenerator.downloadPDF(pdfBytes);
+      // Hide loading
+      UIEnhancements.hideLoading();
+      UIEnhancements.hideButtonLoading(downloadButton);
       
-      console.log('PDF downloaded successfully');
+      // Show preview modal
+      this.showPDFPreviewModal(pdfBytes);
+      
+      console.log('PDF generated and preview modal shown');
       
     } catch (error) {
-      console.error('Failed to download PDF:', error);
-      alert('Failed to download PDF: ' + error.message);
+      console.error('Failed to generate PDF for preview:', error);
+      
+      // Hide loading states
+      UIEnhancements.hideLoading();
+      UIEnhancements.hideButtonLoading(downloadButton);
+      
+      // Show error toast
+      UIEnhancements.showToast('Failed to generate PDF: ' + error.message, 'error');
     }
+  }
+  
+  // Show PDF preview modal with download options
+  showPDFPreviewModal(pdfBytes) {
+    // Create preview modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay pdf-preview-modal';
+    modal.innerHTML = `
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3>PDF Preview</h3>
+          <button class="modal-close" aria-label="Close preview">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="pdf-preview-content">
+            <p>Your CA-66 Airport Use Agreement has been generated successfully.</p>
+            <div class="preview-actions">
+              <button class="btn btn-secondary" id="preview-in-tab">
+                Preview in New Tab
+              </button>
+              <button class="btn btn-primary" id="download-now">
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(modal);
+    
+    // Show modal
+    setTimeout(() => modal.classList.add('show'), 100);
+    
+    // Event listeners
+    const closeModal = () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    };
+    
+    modal.querySelector('.modal-close').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    
+    // Preview in tab
+    modal.querySelector('#preview-in-tab').addEventListener('click', async () => {
+      try {
+        await PDFGenerator.previewPDF(pdfBytes);
+        UIEnhancements.showToast('PDF opened in new tab', 'success');
+      } catch (error) {
+        UIEnhancements.showToast('Failed to preview PDF: ' + error.message, 'error');
+      }
+    });
+    
+    // Download directly
+    modal.querySelector('#download-now').addEventListener('click', async () => {
+      try {
+        await PDFGenerator.downloadPDF(pdfBytes);
+        UIEnhancements.showToast('PDF downloaded successfully!', 'success');
+        closeModal();
+      } catch (error) {
+        UIEnhancements.showToast('Failed to download PDF: ' + error.message, 'error');
+      }
+    });
   }
   
   // Reset application to initial state
@@ -434,9 +541,16 @@ class AgreementApp {
     this.formData = {};
     this.validationErrors = {};
     this.agreementData = null;
+    this.generatedPDFBytes = null;
     
     // Reset UI
     UIManager.clearForm();
+    
+    // Clear saved progress
+    UIEnhancements.clearSavedProgress();
+    
+    // Show confirmation toast
+    UIEnhancements.showToast('Form cleared successfully', 'info');
     
     // Re-initialize auto-population
     this.initializeAutoPopulation();
