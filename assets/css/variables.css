@@ -2,15 +2,20 @@
   /* Colors */
   --primary-blue: #1e3a8a;
   --primary-blue-dark: #1e40af;
+  --primary-blue-light: #3b82f6;
   --secondary-gray: #6b7280;
   --success-green: #059669;
   --error-red: #dc2626;
   --warning-yellow: #d97706;
+  --accent-blue: #dbeafe;
+  --accent-green: #d1fae5;
+  --accent-red: #fee2e2;
   
   /* Background Colors */
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
   --bg-accent: #f3f4f6;
+  --bg-hover: #f8fafc;
   
   /* Text Colors */
   --text-primary: #111827;

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final Position Test - July29 Template</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .test-panel { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #007bff; }
+        .success-panel { border-left-color: #28a745; background: #d4edda; }
+        .warning-panel { border-left-color: #ffc107; background: #fff3cd; }
+        .error-panel { border-left-color: #dc3545; background: #f8d7da; }
+        .console-output { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; margin: 10px 0; }
+        button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        .download-links { margin: 15px 0; }
+        .download-link { background: #17a2b8; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 5px; }
+        .field-analysis { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 15px 0; }
+        .field-item { background: white; padding: 10px; border-radius: 4px; border: 1px solid #dee2e6; }
+        .field-item.pass { border-left: 4px solid #28a745; }
+        .field-item.fail { border-left: 4px solid #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Final Position Test - July29 Template</h1>
+    <p>Testing the updated position configuration to verify all width constraint warnings have been resolved.</p>
+    
+    <div class="test-panel">
+        <h2>🚀 Comprehensive Position Test</h2>
+        <p>This test will generate a PDF and analyze all field positioning for width constraint compliance.</p>
+        <button onclick="runComprehensiveTest()" id="test-btn">🧪 Run Comprehensive Test</button>
+        <button onclick="generateDebugComparison()" class="success">🔧 Generate Debug Comparison</button>
+    </div>
+    
+    <div id="results-container"></div>
+    
+    <div class="test-panel">
+        <h3>📊 Console Output Monitor</h3>
+        <div id="console-monitor" class="console-output">Waiting for test execution...</div>
+    </div>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        import { PDFPositionConfig } from './assets/js/pdf-position-config.js';
+        import { DateCalculator } from './assets/js/calculator.js';
+        
+        window.PDFLibGenerator = PDFLibGenerator;
+        window.PDFPositionConfig = PDFPositionConfig;
+        window.DateCalculator = DateCalculator;
+        
+        // Comprehensive test data that previously caused width warnings
+        window.comprehensiveTestData = {
+            'licensee-name': 'John Alexander Smith Jr.',  // Longer name to test LICENSEE fields
+            'phone': '(831) 555-0123',
+            'email': 'john.alexander.smith@skywardaviation.com',
+            'aircraft-registration': 'N847SA',
+            'aircraft-make-model': 'Cessna 172S Skyhawk SP', // Long aircraft name
+            'insurance-company': 'Avemco Insurance Company LLC', // Long insurance company
+            'insurance-address': '411 Aviation Way Suite 100',
+            'insurance-city': 'Frederick',
+            'insurance-state': 'MD',
+            'insurance-zip': '21701-2345',
+            'insurance-phone': '(800) 638-8440',
+            'policy-number': 'AV-2025-001847-COMPREHENSIVE', // Long policy number
+            'policy-expiry': '2025-12-31',
+            'coverage-amount': 1000000,
+            'start-date': '2025-02-01',
+            'end-date': '2026-02-01'
+        };
+        
+        // Track console messages
+        window.consoleMessages = [];
+        const originalConsoleLog = console.log;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleError = console.error;
+        
+        console.log = function(...args) {
+            window.consoleMessages.push({ type: 'log', message: args.join(' '), timestamp: new Date().toLocaleTimeString() });
+            originalConsoleLog.apply(console, args);
+            updateConsoleMonitor();
+        };
+        
+        console.warn = function(...args) {
+            window.consoleMessages.push({ type: 'warn', message: args.join(' '), timestamp: new Date().toLocaleTimeString() });
+            originalConsoleWarn.apply(console, args);
+            updateConsoleMonitor();
+        };
+        
+        console.error = function(...args) {
+            window.consoleMessages.push({ type: 'error', message: args.join(' '), timestamp: new Date().toLocaleTimeString() });
+            originalConsoleError.apply(console, args);
+            updateConsoleMonitor();
+        };
+        
+        function updateConsoleMonitor() {
+            const monitor = document.getElementById('console-monitor');
+            const recent = window.consoleMessages.slice(-20); // Show last 20 messages
+            
+            monitor.textContent = recent.map(msg => 
+                `[${msg.timestamp}] ${msg.type.toUpperCase()}: ${msg.message}`
+            ).join('\\n');
+            
+            monitor.scrollTop = monitor.scrollHeight;
+        }
+    </script>
+
+    <script>
+        function addResultPanel(title, content, type = 'info') {
+            const container = document.getElementById('results-container');
+            const panel = document.createElement('div');
+            const typeClass = type === 'success' ? 'success-panel' : 
+                            type === 'warning' ? 'warning-panel' : 
+                            type === 'error' ? 'error-panel' : 'test-panel';
+            
+            panel.className = `test-panel ${typeClass}`;
+            panel.innerHTML = `<h3>${title}</h3>${content}`;
+            container.appendChild(panel);
+        }
+
+        async function runComprehensiveTest() {
+            const btn = document.getElementById('test-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Running Comprehensive Test...';
+            
+            // Clear previous results
+            document.getElementById('results-container').innerHTML = '';
+            window.consoleMessages = [];
+            
+            console.log('🚀 Starting comprehensive position test...');
+            console.log('📋 Using extended test data with potentially problematic values');
+            
+            try {
+                // Phase 1: Analyze field positioning theoretically
+                await analyzeFieldPositioning();
+                
+                // Phase 2: Generate PDF and monitor for warnings
+                await generateTestPDF();
+                
+                // Phase 3: Analyze results
+                analyzeTestResults();
+                
+            } catch (error) {
+                console.error('Comprehensive test failed:', error.message);
+                addResultPanel('❌ Test Failed', `<p><strong>Error:</strong> ${error.message}</p>`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🧪 Run Comprehensive Test';
+            }
+        }
+
+        async function analyzeFieldPositioning() {
+            console.log('📊 Phase 1: Analyzing field positioning configuration...');
+            
+            const testData = window.comprehensiveTestData;
+            const config = window.PDFPositionConfig;
+            
+            let analysisHTML = '<div class="field-analysis">';
+            let totalTests = 0;
+            let passingTests = 0;
+            let failingTests = [];
+            
+            Object.entries(testData).forEach(([dataKey, value]) => {
+                const fieldKey = `[${dataKey.toUpperCase().replace(/-/g, '-')}]`;
+                const positions = config.getAllPositions(fieldKey);
+                
+                if (positions.length > 0) {
+                    positions.forEach((pos, index) => {
+                        totalTests++;
+                        
+                        const textValue = String(value);
+                        const charCount = textValue.length;
+                        const estimatedWidth = charCount * (pos.size || 10) * 0.6;
+                        const fitsInWidth = estimatedWidth <= pos.maxWidth;
+                        const buffer = pos.maxWidth - estimatedWidth;
+                        
+                        if (fitsInWidth) {
+                            passingTests++;
+                        } else {
+                            failingTests.push({
+                                field: fieldKey,
+                                value: textValue,
+                                estimated: Math.round(estimatedWidth),
+                                maxWidth: pos.maxWidth,
+                                page: pos.page
+                            });
+                        }
+                        
+                        analysisHTML += `
+                            <div class="field-item ${fitsInWidth ? 'pass' : 'fail'}">
+                                <strong>${fieldKey}${positions.length > 1 ? `_${index + 1}` : ''}</strong><br>
+                                <small>Page ${pos.page}</small><br>
+                                Value: "${textValue}"<br>
+                                Chars: ${charCount} | Est. Width: ${Math.round(estimatedWidth)}px<br>
+                                Max Width: ${pos.maxWidth}px<br>
+                                Status: ${fitsInWidth ? '✅ Fits' : '❌ Too wide'}<br>
+                                ${fitsInWidth ? `Buffer: ${Math.round(buffer)}px` : `Overflow: ${Math.round(-buffer)}px`}
+                            </div>
+                        `;
+                    });
+                }
+            });
+            
+            analysisHTML += '</div>';
+            
+            const passRate = Math.round((passingTests / totalTests) * 100);
+            const summaryHTML = `
+                <p><strong>Field Positioning Analysis Summary:</strong></p>
+                <ul>
+                    <li>Total field tests: ${totalTests}</li>
+                    <li>Passing tests: ${passingTests}</li>
+                    <li>Failing tests: ${failingTests.length}</li>
+                    <li>Pass rate: ${passRate}%</li>
+                </ul>
+                ${analysisHTML}
+            `;
+            
+            addResultPanel(
+                '📊 Field Positioning Analysis', 
+                summaryHTML, 
+                passRate >= 95 ? 'success' : passRate >= 80 ? 'warning' : 'error'
+            );
+            
+            console.log(`Field analysis complete: ${passingTests}/${totalTests} passing (${passRate}%)`);
+        }
+
+        async function generateTestPDF() {
+            console.log('📄 Phase 2: Generating test PDF with monitoring...');
+            
+            const startTime = performance.now();
+            const pdfBytes = await window.PDFLibGenerator.generateFilledPDF(window.comprehensiveTestData);
+            const endTime = performance.now();
+            
+            const duration = endTime - startTime;
+            const size = Math.round(pdfBytes.length / 1024);
+            
+            // Create download link
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            const resultHTML = `
+                <p><strong>PDF Generation Results:</strong></p>
+                <ul>
+                    <li>Generation time: ${duration.toFixed(2)}ms</li>
+                    <li>PDF size: ${size}KB</li>
+                    <li>Performance: ${duration < 3000 ? '✅ Good' : '⚠️ Slow'} (target: <3000ms)</li>
+                </ul>
+                <div class="download-links">
+                    <a href="${url}" download="comprehensive-position-test.pdf" class="download-link">💾 Download Test PDF</a>
+                    <a href="${url}" target="_blank" class="download-link">👀 Preview PDF</a>
+                </div>
+                <p><em>Check the console output below for any width constraint warnings.</em></p>
+            `;
+            
+            addResultPanel('📄 PDF Generation Complete', resultHTML, 'success');
+            
+            console.log(`PDF generated successfully: ${size}KB in ${duration.toFixed(2)}ms`);
+        }
+
+        function analyzeTestResults() {
+            console.log('🔍 Phase 3: Analyzing test results...');
+            
+            // Count warning messages
+            const warningMessages = window.consoleMessages.filter(msg => 
+                msg.type === 'warn' && msg.message.includes('too wide')
+            );
+            
+            const errorMessages = window.consoleMessages.filter(msg => 
+                msg.type === 'error'
+            );
+            
+            let resultHTML = `
+                <p><strong>Console Message Analysis:</strong></p>
+                <ul>
+                    <li>Total console messages: ${window.consoleMessages.length}</li>
+                    <li>Width constraint warnings: ${warningMessages.length}</li>
+                    <li>Error messages: ${errorMessages.length}</li>
+                </ul>
+            `;
+            
+            if (warningMessages.length === 0 && errorMessages.length === 0) {
+                resultHTML += '<p><strong>🎉 SUCCESS!</strong> No width constraint warnings or errors detected. The position configuration update was successful!</p>';
+                addResultPanel('✅ Test Results - SUCCESS', resultHTML, 'success');
+            } else if (warningMessages.length > 0) {
+                resultHTML += '<p><strong>⚠️ WARNINGS DETECTED:</strong></p><ul>';
+                warningMessages.forEach(warning => {
+                    resultHTML += `<li>${warning.message}</li>`;
+                });
+                resultHTML += '</ul>';
+                addResultPanel('⚠️ Test Results - Warnings Found', resultHTML, 'warning');
+            } else if (errorMessages.length > 0) {
+                resultHTML += '<p><strong>❌ ERRORS DETECTED:</strong></p><ul>';
+                errorMessages.forEach(error => {
+                    resultHTML += `<li>${error.message}</li>`;
+                });
+                resultHTML += '</ul>';
+                addResultPanel('❌ Test Results - Errors Found', resultHTML, 'error');
+            }
+            
+            console.log('🏁 Comprehensive test completed');
+        }
+
+        async function generateDebugComparison() {
+            console.log('🔧 Generating debug comparison PDF...');
+            
+            try {
+                const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                
+                // Load template
+                const response = await fetch('assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf');
+                const templateBytes = await response.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(templateBytes);
+                
+                const pages = pdfDoc.getPages();
+                const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                
+                // Add debug info to each page
+                pages.forEach((page, pageIndex) => {
+                    const pageNumber = pageIndex + 1;
+                    const { width, height } = page.getSize();
+                    
+                    // Title
+                    page.drawText(`DEBUG: July29 Template - Updated Positions (Page ${pageNumber})`, {
+                        x: 10,
+                        y: height - 15,
+                        size: 10,
+                        font: font,
+                        color: rgb(0, 0, 1),
+                    });
+                    
+                    // Get placeholders for this page
+                    const placeholders = window.PDFPositionConfig.getPlaceholdersForPage(pageNumber);
+                    
+                    placeholders.forEach(({ placeholder, originalPlaceholder, x, y, size, maxWidth, description }) => {
+                        const displayName = originalPlaceholder || placeholder;
+                        
+                        // Position marker
+                        page.drawCircle({
+                            x: x,
+                            y: y,
+                            size: 2,
+                            color: rgb(1, 0, 0),
+                        });
+                        
+                        // MaxWidth box
+                        page.drawRectangle({
+                            x: x,
+                            y: y - 2,
+                            width: maxWidth,
+                            height: size + 4,
+                            borderColor: rgb(0, 0.7, 0),
+                            borderWidth: 0.5,
+                        });
+                        
+                        // Label
+                        page.drawText(`${displayName.replace(/[\\[\\]]/g, '')}\\n(${x},${y}) w:${maxWidth}`, {
+                            x: x + maxWidth + 5,
+                            y: y,
+                            size: 6,
+                            font: font,
+                            color: rgb(0, 0, 0.8),
+                        });
+                    });
+                });
+                
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                addResultPanel('🔧 Debug Comparison Generated', `
+                    <p>Debug PDF shows updated position markers and maxWidth areas.</p>
+                    <div class="download-links">
+                        <a href="${url}" download="debug-comparison.pdf" class="download-link">💾 Download Debug PDF</a>
+                        <a href="${url}" target="_blank" class="download-link">👀 Preview Debug PDF</a>
+                    </div>
+                `, 'success');
+                
+            } catch (error) {
+                console.error('Debug comparison failed:', error);
+                addResultPanel('❌ Debug Generation Failed', `<p>Error: ${error.message}</p>`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

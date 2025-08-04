@@ -141,7 +141,7 @@ export const PDFPositionConfig = {
     '[INSURANCE-CITY]': { 
       page: 3, 
       x: 145, 
-      y: 262, 
+      y: 259, 
       size: 10,
       maxWidth: 80,
       description: 'Insurance company city'
@@ -150,7 +150,7 @@ export const PDFPositionConfig = {
     '[INSURANCE-STATE]': { 
       page: 3, 
       x: 255, 
-      y: 262, 
+      y: 259, 
       size: 10,
       maxWidth: 30,
       description: 'Insurance company state'
@@ -159,7 +159,7 @@ export const PDFPositionConfig = {
     '[INSURANCE-ZIP]': { 
       page: 3, 
       x: 305, 
-      y: 262, 
+      y: 259, 
       size: 10,
       maxWidth: 50,
       description: 'Insurance company ZIP code'

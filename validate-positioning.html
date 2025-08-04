@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Position Validation Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 10px 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Position Configuration Validation</h1>
+    
+    <button onclick="validatePositions()">🔍 Validate Position Config</button>
+    <button onclick="simulateFieldFit()">📏 Simulate Field Fit Analysis</button>
+    <button onclick="generateComparisonPDF()">📊 Generate Test PDF</button>
+    
+    <div id="results"></div>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFPositionConfig } from './assets/js/pdf-position-config.js';
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        
+        window.PDFPositionConfig = PDFPositionConfig;
+        window.PDFLibGenerator = PDFLibGenerator;
+        
+        // Test data matching our realistic scenario
+        window.validationTestData = {
+            'licensee-name': 'John A. Smith',
+            'phone': '(831) 555-0123', 
+            'email': 'john.smith@skywardaviation.com',
+            'aircraft-registration': 'N847SA',
+            'aircraft-make-model': 'Cessna 172S Skyhawk',
+            'insurance-company': 'Avemco Insurance Company',
+            'insurance-address': '411 Aviation Way',
+            'insurance-city': 'Frederick',
+            'insurance-state': 'MD',
+            'insurance-zip': '21701',
+            'insurance-phone': '(800) 638-8440',
+            'policy-number': 'AV-2025-001847',
+            'policy-expiry': '2025-12-31',
+            'coverage-amount': 1000000,
+            'start-date': '2025-02-01',
+            'end-date': '2026-02-01'
+        };
+    </script>
+
+    <script>
+        function addResult(html, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = html;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function validatePositions() {
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+            
+            addResult('<h3>🔍 Position Configuration Analysis</h3>', 'info');
+            
+            const config = window.PDFPositionConfig;
+            const placeholders = config.placeholders;
+            
+            let totalFields = 0;
+            let fieldsWithGoodWidth = 0;
+            let problematicFields = [];
+            
+            Object.entries(placeholders).forEach(([fieldName, fieldConfig]) => {
+                const configs = Array.isArray(fieldConfig) ? fieldConfig : [fieldConfig];
+                
+                configs.forEach((pos, index) => {
+                    totalFields++;
+                    const displayName = Array.isArray(fieldConfig) ? `${fieldName}_${index + 1}` : fieldName;
+                    
+                    // Check if this field has reasonable maxWidth
+                    if (pos.maxWidth >= 50) {
+                        fieldsWithGoodWidth++;
+                    } else {
+                        problematicFields.push({
+                            name: displayName,
+                            maxWidth: pos.maxWidth,
+                            page: pos.page
+                        });
+                    }
+                });
+            });
+            
+            addResult(`
+                <strong>Configuration Summary:</strong><br>
+                • Total field positions: ${totalFields}<br>
+                • Fields with adequate width (≥50px): ${fieldsWithGoodWidth}<br>
+                • Potentially problematic fields: ${problematicFields.length}
+            `, fieldsWithGoodWidth === totalFields ? 'success' : 'warning');
+            
+            if (problematicFields.length > 0) {
+                let problemList = '<strong>Fields with small maxWidth:</strong><br>';
+                problematicFields.forEach(field => {
+                    problemList += `• ${field.name}: ${field.maxWidth}px (page ${field.page})<br>`;
+                });
+                addResult(problemList, 'warning');
+            }
+            
+            // Check page distribution
+            const pageDistribution = {};
+            Object.entries(placeholders).forEach(([fieldName, fieldConfig]) => {
+                const configs = Array.isArray(fieldConfig) ? fieldConfig : [fieldConfig];
+                configs.forEach(pos => {
+                    if (!pageDistribution[pos.page]) pageDistribution[pos.page] = 0;
+                    pageDistribution[pos.page]++;
+                });
+            });
+            
+            let distributionText = '<strong>Field Distribution by Page:</strong><br>';
+            Object.entries(pageDistribution).forEach(([page, count]) => {
+                distributionText += `• Page ${page}: ${count} fields<br>`;
+            });
+            addResult(distributionText, 'info');
+        }
+
+        function simulateFieldFit() {
+            addResult('<h3>📏 Field Fit Simulation</h3>', 'info');
+            
+            const testData = window.validationTestData;
+            const config = window.PDFPositionConfig;
+            
+            let totalFieldTests = 0;
+            let passingTests = 0;
+            let failingFields = [];
+            
+            Object.entries(testData).forEach(([dataKey, value]) => {
+                // Map data keys to field placeholders
+                const fieldKey = `[${dataKey.toUpperCase().replace(/-/g, '-')}]`;
+                const positions = config.getAllPositions(fieldKey);
+                
+                if (positions.length > 0) {
+                    positions.forEach((pos, index) => {
+                        totalFieldTests++;
+                        
+                        const textValue = String(value);
+                        const charCount = textValue.length;
+                        
+                        // Rough estimation: character width ≈ fontSize * 0.6
+                        const estimatedWidth = charCount * (pos.size || 10) * 0.6;
+                        const fitsInWidth = estimatedWidth <= pos.maxWidth;
+                        
+                        if (fitsInWidth) {
+                            passingTests++;
+                        } else {
+                            failingFields.push({
+                                field: `${fieldKey}_${index + 1}`,
+                                value: textValue,
+                                charCount,
+                                estimatedWidth: Math.round(estimatedWidth),
+                                maxWidth: pos.maxWidth,
+                                page: pos.page
+                            });
+                        }
+                    });
+                }
+            });
+            
+            const passRate = Math.round((passingTests / totalFieldTests) * 100);
+            
+            addResult(`
+                <strong>Field Fit Analysis:</strong><br>
+                • Total field tests: ${totalFieldTests}<br>
+                • Passing tests: ${passingTests}<br>
+                • Failing tests: ${failingFields.length}<br>
+                • Pass rate: ${passRate}%
+            `, passRate >= 90 ? 'success' : passRate >= 70 ? 'warning' : 'error');
+            
+            if (failingFields.length > 0) {
+                let failureDetails = '<strong>Failing Field Details:</strong><br>';
+                failingFields.forEach(field => {
+                    failureDetails += `• ${field.field}: "${field.value}" (${field.charCount} chars)<br>`;
+                    failureDetails += `  Est. width: ${field.estimatedWidth}px, Max: ${field.maxWidth}px, Page: ${field.page}<br>`;
+                });
+                addResult(failureDetails, 'error');
+            }
+        }
+
+        async function generateComparisonPDF() {
+            addResult('<h3>📊 PDF Generation Test</h3>', 'info');
+            
+            try {
+                addResult('Generating PDF with updated position configuration...', 'info');
+                
+                const startTime = performance.now();
+                const pdfBytes = await window.PDFLibGenerator.generateFilledPDF(window.validationTestData);
+                const endTime = performance.now();
+                
+                const duration = endTime - startTime;
+                const size = Math.round(pdfBytes.length / 1024);
+                
+                // Create download link
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                addResult(`
+                    <strong>PDF Generation Successful!</strong><br>
+                    • Size: ${size}KB<br>
+                    • Generation time: ${duration.toFixed(2)}ms<br>
+                    • Performance: ${duration < 3000 ? '✅ Good' : '⚠️ Slow'}<br>
+                    <a href="${url}" download="position-validation-test.pdf" style="color: #007bff; text-decoration: none;">💾 Download Test PDF</a>
+                    <a href="${url}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">👀 Preview PDF</a>
+                `, 'success');
+                
+                addResult('Check browser console for any width constraint warnings. If none appear, the positioning update was successful!', 'info');
+                
+            } catch (error) {
+                addResult(`<strong>PDF Generation Failed:</strong><br>${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

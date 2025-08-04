@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Fine-tuned Positions - July29 Template</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+        .test-section { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #28a745; }
+        .changes-section { background: #fff3cd; border-left-color: #ffc107; }
+        .results-section { background: #d4edda; border-left-color: #28a745; }
+        .error-section { background: #f8d7da; border-left-color: #dc3545; }
+        button { background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; font-weight: bold; }
+        button:hover { background: #218838; }
+        button.debug { background: #17a2b8; }
+        button.debug:hover { background: #138496; }
+        .download-link { background: #6c757d; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 5px; }
+        .changes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 15px 0; }
+        .change-item { background: white; padding: 10px; border-radius: 4px; border-left: 3px solid #007bff; }
+        .console-log { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test Fine-tuned Positions - July29 Template</h1>
+    <p>Validating the precision coordinate adjustments made to improve field positioning and alignment.</p>
+    
+    <div class="test-section changes-section">
+        <h2>📋 Position Adjustments Made</h2>
+        <p>The following fine-tuning adjustments were applied to improve alignment and professional appearance:</p>
+        
+        <div class="changes-grid">
+            <div class="change-item">
+                <h4>📄 Page 1 - Header & Dates</h4>
+                <ul style="font-size: 12px;">
+                    <li><strong>LICENSEE-NAME:</strong> (260,675) → (265,670)</li>
+                    <li><strong>START-DATE main:</strong> (345,688) → (350,680)</li>
+                    <li><strong>START-DATE sig:</strong> (180,146) → (185,148)</li>
+                    <li><strong>END-DATE:</strong> (420,146) → (425,148)</li>
+                    <li><strong>AIRCRAFT-MAKE-MODEL:</strong> (110,250) → (115,255)</li>
+                </ul>
+            </div>
+            
+            <div class="change-item">
+                <h4>📄 Page 3 - Insurance Section</h4>
+                <ul style="font-size: 12px;">
+                    <li><strong>INSURANCE-COMPANY:</strong> (140,305) → (145,308)</li>
+                    <li><strong>INSURANCE-PHONE:</strong> (353,305) → (355,308)</li>
+                    <li><strong>POLICY-NUMBER:</strong> (140,358) → (145,360)</li>
+                    <li><strong>POLICY-EXPIRY:</strong> (380,358) → (385,360)</li>
+                    <li><strong>Insurance Address fields:</strong> Aligned consistently</li>
+                </ul>
+            </div>
+            
+            <div class="change-item">
+                <h4>📄 Page 4 - Contact Info</h4>
+                <ul style="font-size: 12px;">
+                    <li><strong>LICENSEE:</strong> (350,465) → (355,468)</li>
+                    <li><strong>PHONE:</strong> (360,440) → (360,442)</li>
+                    <li><strong>EMAIL:</strong> (350,386) → (355,388)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <p><strong>Key Improvements:</strong></p>
+        <ul>
+            <li>✅ Better baseline alignment for related fields</li>
+            <li>✅ Consistent left margin alignment</li>
+            <li>✅ Improved vertical spacing between sections</li>
+            <li>✅ Professional document appearance optimization</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Position Validation Tests</h2>
+        <button onclick="generateTestPDF()" id="test-btn">📄 Generate Test PDF</button>
+        <button onclick="generateDebugPDF()" class="debug">🔧 Generate Debug PDF</button>
+        <button onclick="comparePositions()">📊 Compare Before/After</button>
+        <div id="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>💻 Test Console</h3>
+        <div id="console-log" class="console-log">Ready to test fine-tuned positions...</div>
+    </div>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        import { PDFPositionConfig } from './assets/js/pdf-position-config.js';
+        
+        window.PDFLibGenerator = PDFLibGenerator;
+        window.PDFPositionConfig = PDFPositionConfig;
+        
+        // Comprehensive test data
+        window.fineTuningTestData = {
+            'licensee-name': 'Christopher Michael Johnson III',  // Longer name to test positioning
+            'phone': '(831) 555-0123',
+            'email': 'chris.johnson@aviationprofessionals.com',
+            'aircraft-registration': 'N8472G',
+            'aircraft-make-model': 'Piper PA-28-181 Archer III',
+            'insurance-company': 'Aviation Insurance Specialists LLC',
+            'insurance-address': '1250 Professional Aviation Boulevard',
+            'insurance-city': 'Fredericksburg',
+            'insurance-state': 'VA',
+            'insurance-zip': '22401-8754',
+            'insurance-phone': '(540) 899-7334',
+            'policy-number': 'AVN-2025-PROF-001847-COMP',
+            'policy-expiry': '2025-12-31',
+            'coverage-amount': 1000000,
+            'start-date': '2025-02-15',
+            'end-date': '2026-02-15'
+        };
+        
+        // Console logging function
+        function log(message, type = 'info') {
+            const consoleDiv = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            consoleDiv.textContent += `[${timestamp}] ${prefix} ${message}\\n`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        window.log = log;
+    </script>
+
+    <script>
+        async function generateTestPDF() {
+            const btn = document.getElementById('test-btn');
+            const resultsDiv = document.getElementById('test-results');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating Test PDF...';
+            resultsDiv.innerHTML = '<p>🧪 Testing fine-tuned positions with comprehensive data...</p>';
+            
+            try {
+                log('Starting test PDF generation with fine-tuned positions...');
+                
+                const startTime = performance.now();
+                const pdfBytes = await window.PDFLibGenerator.generateFilledPDF(window.fineTuningTestData);
+                const endTime = performance.now();
+                
+                const duration = endTime - startTime;
+                const size = Math.round(pdfBytes.length / 1024);
+                
+                log(`PDF generated successfully: ${size}KB in ${duration.toFixed(2)}ms`, 'success');
+                
+                // Create download link
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                resultsDiv.innerHTML = `
+                    <div style="background: #d4edda; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                        <h4>✅ Fine-tuned Position Test Complete!</h4>
+                        <p><strong>Performance Metrics:</strong></p>
+                        <ul>
+                            <li>PDF Size: ${size}KB</li>
+                            <li>Generation Time: ${duration.toFixed(2)}ms</li>
+                            <li>Performance Status: ${duration < 3000 ? '✅ Excellent' : '⚠️ Needs Optimization'}</li>
+                        </ul>
+                        <div style="margin: 15px 0;">
+                            <a href="${url}" download="fine-tuned-positions-test.pdf" class="download-link">💾 Download Test PDF</a>
+                            <a href="${url}" target="_blank" class="download-link">👀 Preview Test PDF</a>
+                        </div>
+                        <p><strong>Validation Points:</strong></p>
+                        <ul>
+                            <li>Check header alignment (LICENSEE-NAME and START-DATE)</li>
+                            <li>Verify insurance section field alignment on page 3</li>
+                            <li>Confirm contact info positioning on page 4</li>
+                            <li>Ensure signature section date alignment on page 1</li>
+                        </ul>
+                    </div>
+                `;
+                
+                log('Review the PDF to validate positioning improvements', 'success');
+                
+            } catch (error) {
+                log(`Test PDF generation failed: ${error.message}`, 'error');
+                resultsDiv.innerHTML = `<div class="error-section"><h4>❌ Test Failed</h4><p>${error.message}</p></div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📄 Generate Test PDF';
+            }
+        }
+
+        async function generateDebugPDF() {
+            log('Generating debug PDF with position markers...');
+            
+            try {
+                const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                
+                const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
+                const response = await fetch(templatePath);
+                const templateBytes = await response.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(templateBytes);
+                
+                const pages = pdfDoc.getPages();
+                const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                
+                log(`Processing ${pages.length} pages for debug markers...`);
+                
+                // Add debug markers
+                pages.forEach((page, pageIndex) => {
+                    const pageNumber = pageIndex + 1;
+                    const { width, height } = page.getSize();
+                    
+                    // Page title with fine-tuning note
+                    page.drawText(`FINE-TUNED POSITIONS - Page ${pageNumber}`, {
+                        x: 10,
+                        y: height - 15,
+                        size: 10,
+                        font: font,
+                        color: rgb(0, 0.7, 0), // Green
+                    });
+                    
+                    // Get placeholders for this page
+                    const placeholders = window.PDFPositionConfig.getPlaceholdersForPage(pageNumber);
+                    
+                    placeholders.forEach(({ placeholder, originalPlaceholder, x, y, size, maxWidth, description }) => {
+                        const displayName = originalPlaceholder || placeholder;
+                        
+                        // Enhanced position marker (larger, green circle for fine-tuned positions)
+                        page.drawCircle({
+                            x: x,
+                            y: y,
+                            size: 4,
+                            color: rgb(0, 0.8, 0), // Bright green for fine-tuned positions
+                        });
+                        
+                        // MaxWidth visualization
+                        page.drawRectangle({
+                            x: x,
+                            y: y - 3,
+                            width: maxWidth,
+                            height: size + 6,
+                            borderColor: rgb(0, 0.6, 0.8),
+                            borderWidth: 0.8,
+                        });
+                        
+                        // Field information
+                        page.drawText(`${displayName.replace(/[\\[\\]]/g, '')}`, {
+                            x: x + 6,
+                            y: y + 10,
+                            size: 7,
+                            font: font,
+                            color: rgb(0, 0.7, 0),
+                        });
+                        
+                        page.drawText(`(${x},${y}) w:${maxWidth}`, {
+                            x: x + 6,
+                            y: y - 10,
+                            size: 5,
+                            font: font,
+                            color: rgb(0.4, 0.4, 0.4),
+                        });
+                    });
+                });
+                
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                const resultsDiv = document.getElementById('test-results');
+                resultsDiv.innerHTML += `
+                    <div style="background: #d1ecf1; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                        <h4>🔧 Fine-tuned Debug PDF Generated</h4>
+                        <p>Debug PDF shows the updated positions with enhanced markers:</p>
+                        <ul>
+                            <li><strong>Green circles</strong> = Fine-tuned field positions</li>
+                            <li><strong>Blue rectangles</strong> = MaxWidth areas</li>
+                            <li><strong>Field labels</strong> = Field names and coordinates</li>
+                        </ul>
+                        <div style="margin: 15px 0;">
+                            <a href="${url}" download="fine-tuned-debug.pdf" class="download-link">💾 Download Debug PDF</a>
+                            <a href="${url}" target="_blank" class="download-link">👀 Preview Debug PDF</a>
+                        </div>
+                    </div>
+                `;
+                
+                log('Debug PDF with fine-tuned positions generated successfully', 'success');
+                
+            } catch (error) {
+                log(`Debug PDF generation failed: ${error.message}`, 'error');
+            }
+        }
+
+        function comparePositions() {
+            log('Displaying position comparison summary...');
+            
+            const comparisonData = [
+                { field: 'LICENSEE-NAME', old: '(260,675)', new: '(265,670)', improvement: 'Better header alignment' },
+                { field: 'START-DATE main', old: '(345,688)', new: '(350,680)', improvement: 'Improved header positioning' },
+                { field: 'START-DATE sig', old: '(180,146)', new: '(185,148)', improvement: 'Baseline alignment' },
+                { field: 'END-DATE', old: '(420,146)', new: '(425,148)', improvement: 'Aligned with START-DATE' },
+                { field: 'AIRCRAFT-MAKE-MODEL', old: '(110,250)', new: '(115,255)', improvement: 'Better positioning' },
+                { field: 'INSURANCE-COMPANY', old: '(140,305)', new: '(145,308)', improvement: 'Consistent left alignment' },
+                { field: 'INSURANCE-PHONE', old: '(353,305)', new: '(355,308)', improvement: 'Baseline alignment' },
+                { field: 'POLICY fields', old: 'y=358', new: 'y=360', improvement: 'Better section spacing' },
+                { field: 'Contact fields (Page 4)', old: 'Various', new: 'Aligned', improvement: 'Professional alignment' }
+            ];
+            
+            let comparisonHTML = `
+                <div style="background: #fff3cd; padding: 15px; border-radius: 4px; margin: 10px 0;">
+                    <h4>📊 Position Comparison Summary</h4>
+                    <p>Before vs After fine-tuning adjustments:</p>
+                    <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 8px; text-align: left; border: 1px solid #dee2e6;">Field</th>
+                                <th style="padding: 8px; text-align: left; border: 1px solid #dee2e6;">Before</th>
+                                <th style="padding: 8px; text-align: left; border: 1px solid #dee2e6;">After</th>
+                                <th style="padding: 8px; text-align: left; border: 1px solid #dee2e6;">Improvement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            comparisonData.forEach(item => {
+                comparisonHTML += `
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #dee2e6; font-weight: bold;">${item.field}</td>
+                        <td style="padding: 6px; border: 1px solid #dee2e6; font-family: monospace;">${item.old}</td>
+                        <td style="padding: 6px; border: 1px solid #dee2e6; font-family: monospace; color: #28a745;">${item.new}</td>
+                        <td style="padding: 6px; border: 1px solid #dee2e6; font-size: 12px;">${item.improvement}</td>
+                    </tr>
+                `;
+            });
+            
+            comparisonHTML += `
+                        </tbody>
+                    </table>
+                    <p><strong>Overall Improvements:</strong></p>
+                    <ul>
+                        <li>✅ Enhanced field alignment across all pages</li>
+                        <li>✅ Consistent baseline positioning for related fields</li>
+                        <li>✅ Professional document appearance</li>
+                        <li>✅ Improved spacing and visual hierarchy</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('test-results').innerHTML += comparisonHTML;
+            log('Position comparison analysis complete', 'success');
+        }
+    </script>
+</body>
+</html>

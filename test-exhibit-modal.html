@@ -89,13 +89,16 @@
     <script type="module">
         import { ExhibitModal } from './assets/js/exhibit-modal.js';
         
+        // Enable debug mode for testing
+        window.CA66Debug = true;
+        
         // Initialize the modal
         ExhibitModal.init();
         
         // Expose to global scope for testing
         window.ExhibitModal = ExhibitModal;
         
-        console.log('Exhibit A Modal test page loaded');
+        console.log('Exhibit A Modal test page loaded (debug mode enabled)');
     </script>
 </body>
 </html>

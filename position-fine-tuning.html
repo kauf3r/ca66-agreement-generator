@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Position Fine-tuning Tool - July29 Template</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .tool-section { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #007bff; }
+        .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 15px 0; }
+        .field-card { background: white; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6; }
+        .field-card.page-1 { border-left: 4px solid #e74c3c; }
+        .field-card.page-3 { border-left: 4px solid #3498db; }
+        .field-card.page-4 { border-left: 4px solid #2ecc71; }
+        .field-card.page-5 { border-left: 4px solid #f39c12; }
+        .coordinates { background: #f8f9fa; padding: 8px; border-radius: 4px; font-family: monospace; margin: 5px 0; }
+        .adjustment-input { width: 60px; margin: 2px; padding: 4px; border: 1px solid #ccc; border-radius: 3px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button.generate { background: #28a745; }
+        button.generate:hover { background: #218838; }
+        button.test { background: #17a2b8; }
+        button.test:hover { background: #138496; }
+        .console-output { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .download-links { margin: 10px 0; }
+        .download-link { background: #6c757d; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 3px; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+        .status-good { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Position Fine-tuning Tool - July29 Template</h1>
+    <p>Interactive tool for analyzing and adjusting field positions in the CA-66 Agreement template.</p>
+    
+    <div class="tool-section">
+        <h2>📊 Current Position Analysis</h2>
+        <button onclick="analyzeCurrentPositions()" class="generate">🔍 Analyze Current Positions</button>
+        <button onclick="generateDebugPDF()" class="test">🔧 Generate Debug PDF</button>
+        <button onclick="generateTestPDF()" class="test">📄 Generate Test PDF</button>
+        <div id="position-analysis"></div>
+    </div>
+    
+    <div class="tool-section">
+        <h2>⚙️ Position Adjustment Interface</h2>
+        <p>Adjust coordinates for precise positioning. Changes will be applied to configuration after testing.</p>
+        <div id="adjustment-interface"></div>
+        <button onclick="previewAdjustments()" class="generate">👀 Preview Adjustments</button>
+        <button onclick="applyAdjustments()" class="generate">✅ Apply Changes</button>
+    </div>
+    
+    <div class="tool-section">
+        <h2>📋 Test Results & Downloads</h2>
+        <div id="results-section"></div>
+    </div>
+    
+    <div class="tool-section">
+        <h3>💻 Debug Console</h3>
+        <div id="debug-console" class="console-output">Ready for position fine-tuning...</div>
+    </div>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFPositionConfig } from './assets/js/pdf-position-config.js';
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        
+        window.PDFPositionConfig = PDFPositionConfig;
+        window.PDFLibGenerator = PDFLibGenerator;
+        
+        // Test data for position testing
+        window.positionTestData = {
+            'licensee-name': 'John Alexander Smith Jr.',
+            'phone': '(831) 555-0123',
+            'email': 'john.smith@skywardaviation.com',
+            'aircraft-registration': 'N847SA',
+            'aircraft-make-model': 'Cessna 172S Skyhawk',
+            'insurance-company': 'Avemco Insurance Company',
+            'insurance-address': '411 Aviation Way',
+            'insurance-city': 'Frederick',
+            'insurance-state': 'MD',
+            'insurance-zip': '21701',
+            'insurance-phone': '(800) 638-8440',
+            'policy-number': 'AV-2025-001847',
+            'policy-expiry': '2025-12-31',
+            'coverage-amount': 1000000,
+            'start-date': '2025-02-01',
+            'end-date': '2026-02-01'
+        };
+        
+        // Store proposed adjustments
+        window.proposedAdjustments = {};
+        
+        // Console logging
+        function debugLog(message, type = 'info') {
+            const console = document.getElementById('debug-console');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️';
+            console.textContent += `[${timestamp}] ${prefix} ${message}\\n`;
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        window.debugLog = debugLog;
+    </script>
+
+    <script>
+        function analyzeCurrentPositions() {
+            const analysisDiv = document.getElementById('position-analysis');
+            analysisDiv.innerHTML = '<p>🔍 Analyzing current position configuration...</p>';
+            
+            debugLog('Starting position analysis...');
+            
+            const config = window.PDFPositionConfig;
+            const placeholders = config.placeholders;
+            
+            // Group fields by page for analysis
+            const pageGroups = {};
+            let totalFields = 0;
+            
+            Object.entries(placeholders).forEach(([fieldName, fieldConfig]) => {
+                const configs = Array.isArray(fieldConfig) ? fieldConfig : [fieldConfig];
+                
+                configs.forEach((pos, index) => {
+                    totalFields++;
+                    const page = pos.page;
+                    if (!pageGroups[page]) pageGroups[page] = [];
+                    
+                    pageGroups[page].push({
+                        fieldName: fieldName,
+                        displayName: Array.isArray(fieldConfig) ? `${fieldName}_${index + 1}` : fieldName,
+                        ...pos,
+                        index: index
+                    });
+                });
+            });
+            
+            let analysisHTML = `
+                <div style="margin: 15px 0;">
+                    <h3>📊 Position Configuration Summary</h3>
+                    <p><strong>Total fields configured:</strong> ${totalFields}</p>
+                    <p><strong>Pages with fields:</strong> ${Object.keys(pageGroups).join(', ')}</p>
+                </div>
+                <div class="analysis-grid">
+            `;
+            
+            // Create cards for each page
+            Object.entries(pageGroups).forEach(([page, fields]) => {
+                const pageClass = `page-${page}`;
+                const pageColor = page === '1' ? '#e74c3c' : page === '3' ? '#3498db' : page === '4' ? '#2ecc71' : '#f39c12';
+                
+                analysisHTML += `
+                    <div class="field-card ${pageClass}">
+                        <h4 style="color: ${pageColor}; margin: 0 0 10px 0;">📄 Page ${page} (${fields.length} fields)</h4>
+                `;
+                
+                fields.forEach(field => {
+                    // Assess positioning status
+                    const hasGoodSpacing = field.maxWidth >= 50;
+                    const statusClass = hasGoodSpacing ? 'status-good' : 'status-warning';
+                    const statusText = hasGoodSpacing ? 'Good' : 'Tight spacing';
+                    
+                    analysisHTML += `
+                        <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <span class="status-indicator ${statusClass}"></span>
+                                <strong>${field.displayName.replace(/[\\[\\]]/g, '')}</strong>
+                                <small style="margin-left: auto; color: #6c757d;">${statusText}</small>
+                            </div>
+                            <div class="coordinates">
+                                Position: (${field.x}, ${field.y}) | Size: ${field.size}px | Max Width: ${field.maxWidth}px
+                            </div>
+                            <small style="color: #6c757d;">${field.description}</small>
+                        </div>
+                    `;
+                });
+                
+                analysisHTML += `</div>`;
+            });
+            
+            analysisHTML += `</div>`;
+            
+            analysisDiv.innerHTML = analysisHTML;
+            debugLog(`Analysis complete: ${totalFields} fields across ${Object.keys(pageGroups).length} pages`);
+        }
+
+        async function generateDebugPDF() {
+            debugLog('Generating debug PDF with position markers...');
+            
+            try {
+                const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                
+                const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
+                const response = await fetch(templatePath);
+                const templateBytes = await response.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(templateBytes);
+                
+                const pages = pdfDoc.getPages();
+                const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                
+                debugLog(`Loaded template: ${pages.length} pages`);
+                
+                // Add markers to each page
+                pages.forEach((page, pageIndex) => {
+                    const pageNumber = pageIndex + 1;
+                    const { width, height } = page.getSize();
+                    
+                    // Page header
+                    page.drawText(`Debug: Page ${pageNumber} - Position Markers`, {
+                        x: 10,
+                        y: height - 15,
+                        size: 10,
+                        font: font,
+                        color: rgb(0, 0, 1),
+                    });
+                    
+                    // Get placeholders for this page
+                    const placeholders = window.PDFPositionConfig.getPlaceholdersForPage(pageNumber);
+                    
+                    placeholders.forEach(({ placeholder, originalPlaceholder, x, y, size, maxWidth, description }) => {
+                        const displayName = originalPlaceholder || placeholder;
+                        
+                        // Position marker (red circle)
+                        page.drawCircle({
+                            x: x,
+                            y: y,
+                            size: 3,
+                            color: rgb(1, 0, 0),
+                        });
+                        
+                        // MaxWidth area (green rectangle)
+                        page.drawRectangle({
+                            x: x,
+                            y: y - 2,
+                            width: maxWidth,
+                            height: size + 4,
+                            borderColor: rgb(0, 0.7, 0),
+                            borderWidth: 0.5,
+                        });
+                        
+                        // Field label
+                        page.drawText(`${displayName.replace(/[\\[\\]]/g, '')}`, {
+                            x: x + 5,
+                            y: y + 8,
+                            size: 6,
+                            font: font,
+                            color: rgb(0.8, 0, 0),
+                        });
+                        
+                        // Coordinates
+                        page.drawText(`(${x},${y})`, {
+                            x: x + 5,
+                            y: y - 8,
+                            size: 5,
+                            font: font,
+                            color: rgb(0.5, 0.5, 0.5),
+                        });
+                    });
+                });
+                
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                const resultsDiv = document.getElementById('results-section');
+                resultsDiv.innerHTML = `
+                    <h4>🔧 Debug PDF Generated</h4>
+                    <p>Position markers (red circles) and maxWidth areas (green rectangles) are shown for all fields.</p>
+                    <div class="download-links">
+                        <a href="${url}" download="position-debug.pdf" class="download-link">💾 Download Debug PDF</a>
+                        <a href="${url}" target="_blank" class="download-link">👀 Preview Debug PDF</a>
+                    </div>
+                `;
+                
+                debugLog('Debug PDF generated successfully', 'success');
+                
+            } catch (error) {
+                debugLog(`Debug PDF generation failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function generateTestPDF() {
+            debugLog('Generating test PDF with sample data...');
+            
+            try {
+                const startTime = performance.now();
+                const pdfBytes = await window.PDFLibGenerator.generateFilledPDF(window.positionTestData);
+                const endTime = performance.now();
+                
+                const duration = endTime - startTime;
+                const size = Math.round(pdfBytes.length / 1024);
+                
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                const resultsDiv = document.getElementById('results-section');
+                resultsDiv.innerHTML += `
+                    <h4>📄 Test PDF Generated</h4>
+                    <p>PDF with realistic data for position evaluation.</p>
+                    <p><strong>Size:</strong> ${size}KB | <strong>Time:</strong> ${duration.toFixed(2)}ms</p>
+                    <div class="download-links">
+                        <a href="${url}" download="position-test.pdf" class="download-link">💾 Download Test PDF</a>
+                        <a href="${url}" target="_blank" class="download-link">👀 Preview Test PDF</a>
+                    </div>
+                `;
+                
+                debugLog(`Test PDF generated: ${size}KB in ${duration.toFixed(2)}ms`, 'success');
+                
+            } catch (error) {
+                debugLog(`Test PDF generation failed: ${error.message}`, 'error');
+            }
+        }
+
+        function createAdjustmentInterface() {
+            const interfaceDiv = document.getElementById('adjustment-interface');
+            const config = window.PDFPositionConfig;
+            
+            let interfaceHTML = '<div class="analysis-grid">';
+            
+            Object.entries(config.placeholders).forEach(([fieldName, fieldConfig]) => {
+                const configs = Array.isArray(fieldConfig) ? fieldConfig : [fieldConfig];
+                
+                configs.forEach((pos, index) => {
+                    const uniqueId = `${fieldName}_${index}`;
+                    const displayName = Array.isArray(fieldConfig) ? `${fieldName}_${index + 1}` : fieldName;
+                    const pageClass = `page-${pos.page}`;
+                    
+                    interfaceHTML += `
+                        <div class="field-card ${pageClass}">
+                            <h5>${displayName.replace(/[\\[\\]]/g, '')}</h5>
+                            <small>Page ${pos.page} - ${pos.description}</small>
+                            <div style="margin: 10px 0;">
+                                <label>X: <input type="number" id="x_${uniqueId}" value="${pos.x}" class="adjustment-input"></label>
+                                <label>Y: <input type="number" id="y_${uniqueId}" value="${pos.y}" class="adjustment-input"></label>
+                            </div>
+                            <div style="margin: 10px 0;">
+                                <label>Size: <input type="number" id="size_${uniqueId}" value="${pos.size}" class="adjustment-input"></label>
+                                <label>MaxWidth: <input type="number" id="width_${uniqueId}" value="${pos.maxWidth}" class="adjustment-input"></label>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            
+            interfaceHTML += '</div>';
+            interfaceDiv.innerHTML = interfaceHTML;
+        }
+
+        function previewAdjustments() {
+            debugLog('Collecting position adjustments for preview...');
+            
+            const config = window.PDFPositionConfig;
+            const adjustments = {};
+            let changeCount = 0;
+            
+            Object.entries(config.placeholders).forEach(([fieldName, fieldConfig]) => {
+                const configs = Array.isArray(fieldConfig) ? fieldConfig : [fieldConfig];
+                
+                configs.forEach((pos, index) => {
+                    const uniqueId = `${fieldName}_${index}`;
+                    
+                    const newX = parseInt(document.getElementById(`x_${uniqueId}`).value);
+                    const newY = parseInt(document.getElementById(`y_${uniqueId}`).value);
+                    const newSize = parseInt(document.getElementById(`size_${uniqueId}`).value);
+                    const newMaxWidth = parseInt(document.getElementById(`width_${uniqueId}`).value);
+                    
+                    if (newX !== pos.x || newY !== pos.y || newSize !== pos.size || newMaxWidth !== pos.maxWidth) {
+                        adjustments[`${fieldName}_${index}`] = {
+                            fieldName,
+                            index,
+                            old: { x: pos.x, y: pos.y, size: pos.size, maxWidth: pos.maxWidth },
+                            new: { x: newX, y: newY, size: newSize, maxWidth: newMaxWidth }
+                        };
+                        changeCount++;
+                    }
+                });
+            });
+            
+            window.proposedAdjustments = adjustments;
+            
+            if (changeCount === 0) {
+                debugLog('No changes detected in position values', 'warn');
+                return;
+            }
+            
+            debugLog(`Preview: ${changeCount} position changes detected`, 'success');
+            
+            // Show preview summary
+            let previewHTML = `<h4>📋 Proposed Changes (${changeCount})</h4>`;
+            Object.entries(adjustments).forEach(([key, adj]) => {
+                previewHTML += `
+                    <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 4px;">
+                        <strong>${adj.fieldName.replace(/[\\[\\]]/g, '')}</strong><br>
+                        <small>Position: (${adj.old.x}, ${adj.old.y}) → (${adj.new.x}, ${adj.new.y})</small><br>
+                        <small>Size: ${adj.old.size}px → ${adj.new.size}px | MaxWidth: ${adj.old.maxWidth}px → ${adj.new.maxWidth}px</small>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('results-section').innerHTML = previewHTML;
+        }
+
+        function applyAdjustments() {
+            if (!window.proposedAdjustments || Object.keys(window.proposedAdjustments).length === 0) {
+                debugLog('No adjustments to apply. Run Preview first.', 'warn');
+                return;
+            }
+            
+            debugLog('Applying position adjustments...', 'success');
+            
+            // Here we would normally update the config file
+            // For now, we'll show what would be updated
+            let configCode = '// Updated Position Configuration\\n';
+            Object.entries(window.proposedAdjustments).forEach(([key, adj]) => {
+                configCode += `// ${adj.fieldName}: Position (${adj.new.x}, ${adj.new.y}), Size ${adj.new.size}px, MaxWidth ${adj.new.maxWidth}px\\n`;
+            });
+            
+            debugLog('Configuration update code generated', 'success');
+            
+            document.getElementById('results-section').innerHTML += `
+                <div style="margin: 20px 0; padding: 15px; background: #d4edda; border-radius: 4px;">
+                    <h4>✅ Ready to Apply Changes</h4>
+                    <p>The following adjustments are ready to be applied to the configuration:</p>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">${configCode}</pre>
+                    <p><em>Note: Actual file updates would be performed here in a full implementation.</em></p>
+                </div>
+            `;
+        }
+
+        // Initialize interface when page loads
+        window.addEventListener('load', () => {
+            debugLog('Position fine-tuning tool initialized');
+            createAdjustmentInterface();
+        });
+    </script>
+</body>
+</html>

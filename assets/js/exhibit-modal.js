@@ -231,13 +231,33 @@ export const ExhibitModal = {
     // Update progress bar
     this.progressBar.style.height = `${Math.min(scrollPercentage, 100)}%`;
     
-    // Check if scrolled to bottom (with small tolerance)
-    const tolerance = 10;
+    // Check if scrolled to bottom (with larger tolerance for better UX)
+    const tolerance = 50; // Increased tolerance for mobile and different browsers
     const isAtBottom = scrollTop + clientHeight >= scrollHeight - tolerance;
+    
+    // Debug logging (remove in production)
+    if (window.CA66Debug) {
+      console.log('Scroll Debug:', {
+        scrollTop,
+        clientHeight,
+        scrollHeight,
+        scrollPercentage: scrollPercentage.toFixed(1),
+        isAtBottom,
+        scrolledToBottom: this.scrolledToBottom
+      });
+    }
     
     if (isAtBottom && !this.scrolledToBottom) {
       this.scrolledToBottom = true;
       this.enableAcknowledgeButton();
+      console.log('✅ Scrolled to bottom - acknowledge button enabled');
+    }
+    
+    // Fallback: Enable button if user has scrolled 95% of content
+    if (scrollPercentage >= 95 && !this.scrolledToBottom) {
+      this.scrolledToBottom = true;
+      this.enableAcknowledgeButton();
+      console.log('✅ 95% scroll reached - acknowledge button enabled');
     }
   },
   
@@ -248,10 +268,11 @@ export const ExhibitModal = {
     if (this.acknowledgeButton) {
       this.acknowledgeButton.disabled = false;
       this.acknowledgeButton.textContent = 'I Have Read and Understand';
+      this.acknowledgeButton.style.cursor = 'pointer';
     }
     
     if (this.scrollNotice) {
-      this.scrollNotice.textContent = 'Thank you for reading the complete terms';
+      this.scrollNotice.textContent = '✅ Ready to acknowledge - you have read all terms';
       this.scrollNotice.classList.add('completed');
     }
   },
@@ -264,11 +285,12 @@ export const ExhibitModal = {
     
     if (this.acknowledgeButton) {
       this.acknowledgeButton.disabled = true;
-      this.acknowledgeButton.textContent = 'Please scroll to read all terms';
+      this.acknowledgeButton.textContent = '⏬ Scroll to read all terms first';
+      this.acknowledgeButton.style.cursor = 'not-allowed';
     }
     
     if (this.scrollNotice) {
-      this.scrollNotice.textContent = 'Please scroll to read all terms';
+      this.scrollNotice.textContent = 'Please scroll down to read all airport rules and regulations';
       this.scrollNotice.classList.remove('completed');
     }
     
