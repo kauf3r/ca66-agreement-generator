@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "start": "python -m http.server 8000",
+    "build": "echo 'Static site - no build needed'",
     "test-pdf": "node test-pdf-filler.js"
   },
   "dependencies": {
+    "dotenv": "^17.2.1",
     "nodemailer": "^7.0.5",
     "pdf-lib": "^1.17.1",
     "resend": "^3.2.0"

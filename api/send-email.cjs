@@ -1,24 +1,18 @@
 /**
  * Vercel Serverless Function for Email Integration
- * CA-66 Airport Agreement Generator - Email Service
+ * CA-66 Airport Agreement Generator - Gmail SMTP Email Service
  * 
- * This function handles sending generated agreements via email using Resend API
+ * This function handles sending generated agreements via email using Gmail SMTP
  */
 
-const { Resend } = require('resend');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Email configuration - Using Resend's test domain for development
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL || 'support@airspaceintegration.com';
+const nodemailer = require('nodemailer');
 
 module.exports = async function handler(req, res) {
     // Detailed logging for debugging
-    console.log('Email function called:', {
+    console.log('Gmail Email function called:', {
         method: req.method,
-        hasResendKey: !!process.env.RESEND_API_KEY,
-        fromEmail: FROM_EMAIL,
+        hasGmailUser: !!process.env.GMAIL_USER,
+        hasGmailPassword: !!process.env.GMAIL_APP_PASSWORD,
         timestamp: new Date().toISOString()
     });
 
@@ -42,14 +36,15 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        // Check if Resend API key is available
-        if (!process.env.RESEND_API_KEY) {
-            console.error('RESEND_API_KEY not found in environment variables');
+        // Check if Gmail credentials are available
+        if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+            console.error('Gmail credentials not found in environment variables');
             return res.status(500).json({
                 success: false,
                 error: 'Email service not configured properly'
             });
         }
+
         const { 
             recipientEmail, 
             recipientName, 
@@ -83,6 +78,19 @@ module.exports = async function handler(req, res) {
             });
         }
 
+        // Create Gmail SMTP transporter
+        const transporter = nodemailer.createTransporter({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
+            }
+        });
+
+        // Verify SMTP connection
+        await transporter.verify();
+        console.log('Gmail SMTP connection verified successfully');
+
         // Prepare email content
         const subject = `CA-66 Airport Usage License Agreement - ${agreementData.licensee || recipientName}`;
         
@@ -93,10 +101,10 @@ module.exports = async function handler(req, res) {
         const textContent = generateTextEmail(recipientName, agreementData);
 
         // Email options
-        const emailOptions = {
-            from: FROM_EMAIL,
+        const mailOptions = {
+            from: `"AirSpace Integration" <${process.env.GMAIL_USER}>`,
             to: recipientEmail,
-            replyTo: REPLY_TO_EMAIL,
+            replyTo: process.env.GMAIL_USER,
             subject: subject,
             html: htmlContent,
             text: textContent,
@@ -106,11 +114,12 @@ module.exports = async function handler(req, res) {
         if (includeAttachment && pdfBuffer) {
             try {
                 const pdfData = Buffer.from(pdfBuffer, 'base64');
-                emailOptions.attachments = [{
+                mailOptions.attachments = [{
                     filename: `CA66_Agreement_${agreementData.licensee?.replace(/\s+/g, '_') || 'Agreement'}.pdf`,
                     content: pdfData,
-                    type: 'application/pdf'
+                    contentType: 'application/pdf'
                 }];
+                console.log('PDF attachment added to email');
             } catch (pdfError) {
                 console.error('PDF attachment error:', pdfError);
                 // Continue without attachment rather than failing
@@ -118,12 +127,12 @@ module.exports = async function handler(req, res) {
         }
 
         // Send email with retry logic
-        const result = await sendEmailWithRetry(emailOptions, 3);
+        const result = await sendEmailWithRetry(transporter, mailOptions, 3);
 
         return res.status(200).json({
             success: true,
-            messageId: result.data?.id,
-            message: 'Agreement sent successfully via email'
+            messageId: result.messageId,
+            message: 'Agreement sent successfully via Gmail'
         });
 
     } catch (error) {
@@ -139,26 +148,26 @@ module.exports = async function handler(req, res) {
             details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
-}
+};
 
 /**
  * Send email with retry logic
  */
-async function sendEmailWithRetry(emailOptions, maxRetries = 3) {
+async function sendEmailWithRetry(transporter, mailOptions, maxRetries = 3) {
     let lastError;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             console.log(`Email attempt ${attempt}/${maxRetries}`);
-            const result = await resend.emails.send(emailOptions);
-            console.log('Email sent successfully:', result.data?.id);
+            const result = await transporter.sendMail(mailOptions);
+            console.log('Email sent successfully:', result.messageId);
             return result;
         } catch (error) {
             lastError = error;
             console.error(`Email attempt ${attempt} failed:`, error.message);
             
-            // Don't retry on client errors (4xx)
-            if (error.statusCode >= 400 && error.statusCode < 500) {
+            // Don't retry on authentication errors (4xx)
+            if (error.responseCode >= 400 && error.responseCode < 500) {
                 break;
             }
             
@@ -239,20 +248,15 @@ function generateEmailTemplate(recipientName, agreementData) {
             font-size: 14px;
             color: #718096;
         }
-        .button {
-            display: inline-block;
-            background: #3182ce;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            margin: 15px 0;
-        }
         .logo {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
+        }
+        @media (max-width: 600px) {
+            .detail-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -321,7 +325,7 @@ function generateEmailTemplate(recipientName, agreementData) {
     
     <div class="footer">
         <p>This email was generated automatically by the CA-66 Agreement System.</p>
-        <p>For support, please contact: support@airspaceintegration.com</p>
+        <p>For support, please contact: ${process.env.GMAIL_USER}</p>
         <p>© 2025 AirSpace Integration, Inc. All rights reserved.</p>
     </div>
 </body>
@@ -360,7 +364,7 @@ IMPORTANT REMINDERS:
 - Single engine reciprocating aircraft only (MTOW < 12,500 lbs)
 - No Saturday operations (Sabbath observance)
 
-If you have any questions, please contact us at support@airspaceintegration.com.
+If you have any questions, please contact us at ${process.env.GMAIL_USER}.
 
 Welcome to the Monterey Bay Academy Airport community!
 
@@ -370,7 +374,7 @@ Airport Operations Team
 
 ---
 This email was generated automatically by the CA-66 Agreement System.
-For support: support@airspaceintegration.com
+For support: ${process.env.GMAIL_USER}
 © 2025 AirSpace Integration, Inc. All rights reserved.
     `.trim();
 }
