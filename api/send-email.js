@@ -5,15 +5,23 @@
  * This function handles sending generated agreements via email using Resend API
  */
 
-import { Resend } from 'resend';
+const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Email configuration
-const FROM_EMAIL = 'noreply@airspaceintegration.com'; // Update with your verified domain
-const REPLY_TO_EMAIL = 'support@airspaceintegration.com';
+// Email configuration - Using Resend's test domain for development
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL || 'support@airspaceintegration.com';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+    // Detailed logging for debugging
+    console.log('Email function called:', {
+        method: req.method,
+        hasResendKey: !!process.env.RESEND_API_KEY,
+        fromEmail: FROM_EMAIL,
+        timestamp: new Date().toISOString()
+    });
+
     // Set CORS headers for frontend integration
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -34,6 +42,14 @@ export default async function handler(req, res) {
     }
 
     try {
+        // Check if Resend API key is available
+        if (!process.env.RESEND_API_KEY) {
+            console.error('RESEND_API_KEY not found in environment variables');
+            return res.status(500).json({
+                success: false,
+                error: 'Email service not configured properly'
+            });
+        }
         const { 
             recipientEmail, 
             recipientName, 
@@ -41,6 +57,14 @@ export default async function handler(req, res) {
             pdfBuffer, // Base64 encoded PDF
             includeAttachment = true 
         } = req.body;
+
+        console.log('Request data received:', {
+            recipientEmail,
+            recipientName,
+            hasAgreementData: !!agreementData,
+            hasPdfBuffer: !!pdfBuffer,
+            includeAttachment
+        });
 
         // Input validation
         if (!recipientEmail || !recipientName || !agreementData) {
