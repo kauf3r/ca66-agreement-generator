@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Generation Test - CA-66 Agreement</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 3px solid #3498db;
+            background: #f8f9fa;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .browser-info {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        #pdfViewer {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 PDF Generation Test Suite</h1>
+        
+        <div class="browser-info">
+            <strong>Browser:</strong> <span id="browserInfo"></span><br>
+            <strong>Date Format Test:</strong> <span id="dateFormat"></span>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <button onclick="testFillableTemplate()">Test Fillable Template</button>
+            <button onclick="testTextOverlay()">Test Text Overlay</button>
+            <button onclick="testDateFormatting()">Test Date Formatting</button>
+            <button onclick="testSpecialCharacters()">Test Special Characters</button>
+            <button onclick="testFullGeneration()">Test Full PDF Generation</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Results</h2>
+            <div id="testResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>PDF Preview</h2>
+            <iframe id="pdfViewer" style="display:none;"></iframe>
+            <div id="downloadLink"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PDFLibGenerator } from './assets/js/pdf-lib-generator.js';
+        
+        // Detect browser
+        function detectBrowser() {
+            const userAgent = navigator.userAgent;
+            let browserName = "Unknown";
+            
+            if (userAgent.indexOf("Firefox") > -1) {
+                browserName = "Firefox";
+            } else if (userAgent.indexOf("Chrome") > -1) {
+                browserName = "Chrome";
+            } else if (userAgent.indexOf("Safari") > -1) {
+                browserName = "Safari";
+            } else if (userAgent.indexOf("Edge") > -1) {
+                browserName = "Edge";
+            }
+            
+            document.getElementById('browserInfo').textContent = `${browserName} - ${userAgent}`;
+        }
+        
+        // Test date formatting
+        function testDateDisplay() {
+            const testDate = new Date('2025-08-09');
+            const day = String(testDate.getDate()).padStart(2, '0');
+            const month = String(testDate.getMonth() + 1).padStart(2, '0');
+            const year = testDate.getFullYear();
+            const formatted = `${day}/${month}/${year}`;
+            document.getElementById('dateFormat').textContent = `2025-08-09 → ${formatted}`;
+        }
+        
+        // Log test result
+        function logResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        // Test fillable template detection
+        window.testFillableTemplate = async function() {
+            logResult('Testing fillable template detection...', 'info');
+            
+            try {
+                const response = await fetch('assets/examples/CA66-Agreement-Form.pdf');
+                if (response.ok) {
+                    const pdfBytes = await response.arrayBuffer();
+                    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                    const form = pdfDoc.getForm();
+                    const fields = form.getFields();
+                    
+                    if (fields.length > 0) {
+                        logResult(`✅ Fillable template found with ${fields.length} form fields`, 'success');
+                        fields.forEach(field => {
+                            logResult(`  - ${field.getName()} (${field.constructor.name})`, 'info');
+                        });
+                    } else {
+                        logResult('⚠️ Template has no form fields', 'warning');
+                    }
+                } else {
+                    logResult('📝 Fillable template not found - will use text overlay', 'warning');
+                }
+            } catch (error) {
+                logResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+        
+        // Test text overlay
+        window.testTextOverlay = async function() {
+            logResult('Testing text overlay template...', 'info');
+            
+            try {
+                const response = await fetch('assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf');
+                if (response.ok) {
+                    const pdfBytes = await response.arrayBuffer();
+                    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                    logResult(`✅ Text overlay template loaded: ${pdfDoc.getPageCount()} pages`, 'success');
+                } else {
+                    logResult('❌ Text overlay template not found', 'error');
+                }
+            } catch (error) {
+                logResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+        
+        // Test date formatting
+        window.testDateFormatting = function() {
+            logResult('Testing DD/MM/YYYY date formatting...', 'info');
+            
+            const testDates = [
+                '2025-08-09',
+                '2025-12-31',
+                '2025-01-01',
+                new Date('2025-08-09')
+            ];
+            
+            testDates.forEach(date => {
+                const dateObj = new Date(date);
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                const formatted = `${day}/${month}/${year}`;
+                logResult(`${date} → ${formatted}`, 'success');
+            });
+        };
+        
+        // Test special characters
+        window.testSpecialCharacters = function() {
+            logResult('Testing special character handling...', 'info');
+            
+            const testStrings = [
+                "O'Brien's Company",
+                '"Special" Characters',
+                'Test & Co.',
+                'Café—Test',
+                'Test\x00Control\x01Characters'
+            ];
+            
+            testStrings.forEach(str => {
+                const sanitized = str
+                    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+                    .replace(/[""]/g, '"')
+                    .replace(/['']/g, "'")
+                    .trim();
+                logResult(`"${str}" → "${sanitized}"`, 'success');
+            });
+        };
+        
+        // Test full PDF generation
+        window.testFullGeneration = async function() {
+            logResult('Starting full PDF generation test...', 'info');
+            
+            const testData = {
+                'licensee-name': 'John O\'Brien',
+                'company-name': 'Test "Aviation" Co.',
+                'phone': '555-123-4567',
+                'email': 'john@test.com',
+                'aircraft-registration': 'N12345',
+                'aircraft-make-model': 'Cessna 172',
+                'insurance-company': 'Aviation Insurance—LLC',
+                'insurance-address': '123 Main St',
+                'insurance-city': 'San Francisco',
+                'insurance-state': 'CA',
+                'insurance-zip': '94102',
+                'policy-number': 'POL-2025-001',
+                'policy-expiry': '2026-08-09',
+                'coverage-amount': 1000000,
+                'start-date': '2025-08-09',
+                'end-date': '2026-08-09',
+                'flight-hours': 500
+            };
+            
+            try {
+                logResult('Generating PDF with test data...', 'info');
+                const pdfBytes = await PDFLibGenerator.generateFilledPDF(testData);
+                
+                logResult('✅ PDF generated successfully', 'success');
+                
+                // Display PDF
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                const viewer = document.getElementById('pdfViewer');
+                viewer.src = url;
+                viewer.style.display = 'block';
+                
+                // Create download link
+                const downloadDiv = document.getElementById('downloadLink');
+                downloadDiv.innerHTML = `
+                    <a href="${url}" download="test-ca66-agreement.pdf" 
+                       style="display:inline-block; margin-top:10px; padding:10px; background:#27ae60; color:white; text-decoration:none; border-radius:4px;">
+                       📥 Download Generated PDF
+                    </a>
+                `;
+                
+                logResult('PDF displayed in viewer', 'success');
+                
+            } catch (error) {
+                logResult(`❌ Generation failed: ${error.message}`, 'error');
+                console.error(error);
+            }
+        };
+        
+        // Initialize on load
+        detectBrowser();
+        testDateDisplay();
+        logResult('Test suite ready. Click buttons to run tests.', 'info');
+    </script>
+</body>
+</html>

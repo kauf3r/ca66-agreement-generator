@@ -19,12 +19,31 @@ export class PDFLibGenerator {
       // Import pdf-lib dynamically (it's loaded via CDN)
       const { PDFDocument, rgb } = PDFLib;
       
-      // TEMPORARY: Force July29 text overlay template for fine-tuning
-      console.log('🚨🚨🚨 FORCED MODE ACTIVE: Using July29 9-page text overlay template 🚨🚨🚨');
-      let templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
-      let templateBytes = await this.fetchPDFTemplate(templatePath);
+      // Try to load fillable form template first
+      let templatePath = 'assets/examples/CA66-Agreement-Form.pdf';
+      let templateBytes;
       let useFillableForm = false;
-      console.log('🚨 Template loaded. Should be 9 pages, not fillable form! 🚨');
+      
+      try {
+        console.log('🔍 Checking for fillable PDF template...');
+        templateBytes = await this.fetchPDFTemplate(templatePath);
+        const testDoc = await PDFDocument.load(templateBytes);
+        const testForm = testDoc.getForm();
+        const testFields = testForm.getFields();
+        
+        if (testFields.length > 0) {
+          console.log(`✅ Fillable template found with ${testFields.length} form fields. Using form field approach.`);
+          useFillableForm = true;
+        } else {
+          throw new Error('No form fields in fillable template');
+        }
+      } catch (fillableError) {
+        // Fallback to text overlay template
+        console.log('📝 Fillable template not available. Using text overlay template.');
+        templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
+        templateBytes = await this.fetchPDFTemplate(templatePath);
+        useFillableForm = false;
+      }
       
       // Load the PDF document
       const pdfDoc = await PDFDocument.load(templateBytes);
@@ -125,22 +144,41 @@ export class PDFLibGenerator {
           const value = fieldMapping[lookupKey] || fieldMapping[placeholderKey];
           
           if (value && String(value).trim()) {
-            const textValue = String(value).trim();
-            const fontSize = size || PDFPositionConfig.defaultFontSize;
+            let textValue = String(value).trim();
+            let fontSize = size || PDFPositionConfig.defaultFontSize;
             
-            // Validate text fits within max width
-            if (!PDFPositionConfig.validateTextFit(textValue, { maxWidth, size: fontSize }, font)) {
-              console.warn(`Text "${textValue}" may be too wide for placeholder ${placeholder}`);
+            // Check if text fits within max width and adjust if necessary
+            let textWidth = font.widthOfTextAtSize(textValue, fontSize);
+            
+            // If text is too wide, try reducing font size
+            if (maxWidth && textWidth > maxWidth) {
+              const minFontSize = 8; // Minimum readable font size
+              while (fontSize > minFontSize && textWidth > maxWidth) {
+                fontSize -= 0.5;
+                textWidth = font.widthOfTextAtSize(textValue, fontSize);
+              }
+              
+              // If still too wide, truncate with ellipsis
+              if (textWidth > maxWidth) {
+                while (textWidth > maxWidth && textValue.length > 3) {
+                  textValue = textValue.slice(0, -1);
+                  textWidth = font.widthOfTextAtSize(textValue + '...', fontSize);
+                }
+                if (textValue.length > 3) {
+                  textValue = textValue + '...';
+                }
+              }
+              
+              console.warn(`⚠️ Text adjusted for ${placeholder}: font size ${fontSize}pt`);
             }
             
             // Draw a white rectangle to cover the placeholder
-            const textWidth = font.widthOfTextAtSize(textValue, fontSize);
             const rectHeight = fontSize + 4;
             
             page.drawRectangle({
               x: x - 2,
               y: y - 2,
-              width: Math.min(textWidth + 4, maxWidth + 4),
+              width: Math.min(textWidth + 4, (maxWidth || textWidth) + 4),
               height: rectHeight,
               color: rgb(1, 1, 1), // White background to cover placeholder
             });
@@ -268,12 +306,33 @@ export class PDFLibGenerator {
         value = '';
       }
       
+      // Sanitize special characters that might cause issues in PDFs
+      const sanitizeValue = (val) => {
+        if (typeof val !== 'string') val = String(val);
+        // Replace problematic characters
+        return val
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '') // Remove control characters
+          .replace(/[""]/g, '"') // Normalize quotes
+          .replace(/['']/g, "'") // Normalize apostrophes
+          .trim();
+      };
+      
       // Handle different field types
       const fieldType = field.constructor.name;
       
       switch (fieldType) {
         case 'PDFTextField':
-          const textValue = String(value).trim();
+          const textValue = sanitizeValue(value);
+          
+          // Set font size if field supports it (for better text fitting)
+          if (field.setFontSize) {
+            try {
+              field.setFontSize(11); // Standard font size
+            } catch (e) {
+              // Some fields may not support font size setting
+            }
+          }
+          
           field.setText(textValue);
           console.log(`✅ Text field '${fieldName}' filled with: "${textValue}"`);
           break;
@@ -370,14 +429,25 @@ export class PDFLibGenerator {
   static createFieldMapping(formData) {
     console.log('Creating field mapping from form data:', formData);
     
-    // Safely get date values and format them
+    // Safely get date values and format them (DD/MM/YYYY for legal compliance)
     const startDateValue = formData['start-date'];
     const endDateValue = formData['end-date'];
     const policyExpiryValue = formData['policy-expiry'];
     
-    const startDate = startDateValue ? DateCalculator.formatDateForDisplay(startDateValue) : '';
-    const endDate = endDateValue ? DateCalculator.formatDateForDisplay(endDateValue) : '';
-    const policyExpiry = policyExpiryValue ? DateCalculator.formatDateForDisplay(policyExpiryValue) : '';
+    // Format dates as DD/MM/YYYY for legal compliance
+    const formatDateDDMMYYYY = (dateValue) => {
+      if (!dateValue) return '';
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return '';
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+    
+    const startDate = formatDateDDMMYYYY(startDateValue);
+    const endDate = formatDateDDMMYYYY(endDateValue);
+    const policyExpiry = formatDateDDMMYYYY(policyExpiryValue);
     
     // Safely combine aircraft information
     const aircraftReg = formData['aircraft-registration'] || '';

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Field Analyzer</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+    <h1>PDF Field Analyzer</h1>
+    <p>This tool analyzes the CA-66 PDF template to identify actual form field names.</p>
+    
+    <button id="analyzeBtn">Analyze PDF Template</button>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('analyzeBtn').addEventListener('click', async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Analyzing PDF template...</p>';
+
+            try {
+                // Load the PDF template
+                const templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
+                const response = await fetch(templatePath);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch template: ${response.status}`);
+                }
+                
+                const pdfBytes = await response.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                
+                // Get form and analyze fields
+                const form = pdfDoc.getForm();
+                const fields = form.getFields();
+                
+                let html = `<h2>PDF Analysis Results</h2>`;
+                html += `<p><strong>Total Pages:</strong> ${pdfDoc.getPageCount()}</p>`;
+                html += `<p><strong>Total Form Fields:</strong> ${fields.length}</p>`;
+                
+                if (fields.length === 0) {
+                    html += `<p><em>This PDF has no fillable form fields. It uses text placeholders instead.</em></p>`;
+                } else {
+                    html += `<h3>Form Fields Found:</h3><ul>`;
+                    
+                    fields.forEach((field, index) => {
+                        const name = field.getName();
+                        const type = field.constructor.name;
+                        const isRequired = field.isRequired ? field.isRequired() : false;
+                        const isReadOnly = field.isReadOnly ? field.isReadOnly() : false;
+                        
+                        html += `<li><strong>${name}</strong> (${type})`;
+                        if (isRequired) html += ` - Required`;
+                        if (isReadOnly) html += ` - Read Only`;
+                        html += `</li>`;
+                    });
+                    
+                    html += `</ul>`;
+                }
+                
+                // Get page info
+                html += `<h3>Page Information:</h3><ul>`;
+                for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+                    const page = pdfDoc.getPage(i);
+                    const { width, height } = page.getSize();
+                    html += `<li>Page ${i + 1}: ${width} x ${height} points</li>`;
+                }
+                html += `</ul>`;
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Error analyzing PDF:', error);
+            }
+        });
+    </script>
+</body>
+</html>
