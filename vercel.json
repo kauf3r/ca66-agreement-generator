@@ -1,7 +1,15 @@
 {
+  "buildCommand": "echo 'Static site - no build needed'",
+  "outputDirectory": ".",
   "functions": {
     "api/send-email.cjs": {
       "runtime": "@vercel/node@3.1.0"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
 }
