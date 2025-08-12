@@ -7,6 +7,7 @@ import { DocumentGenerator } from './generator.js';
 import { PDFGenerator } from './pdf-generator.js';
 import { ExhibitModal } from './exhibit-modal.js';
 import { UIEnhancements } from './ui-enhancements.js';
+import './email-modal.js'; // Initialize email modal
 
 class AgreementApp {
   constructor() {

@@ -300,12 +300,59 @@
                 </div>
                 <div class="preview-actions">
                     <button type="button" id="edit-agreement" class="btn btn-secondary">Edit Details</button>
+                    <button type="button" id="email-agreement" class="btn btn-success">📧 Send via Email</button>
                     <button type="button" id="print-agreement" class="btn btn-primary">Print Agreement</button>
                     <button type="button" id="download-pdf" class="btn btn-primary">Download PDF Agreement</button>
                 </div>
             </section>
- 3       </div>
+        </div>
     </main>
+
+    <!-- Email Modal -->
+    <div id="email-modal" class="modal-overlay" role="dialog" aria-labelledby="email-modal-title" aria-hidden="true">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="email-modal-title">📧 Send Agreement via Email</h2>
+                <button type="button" class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="email-form" class="email-form">
+                    <div class="form-group">
+                        <label for="email-recipient">Recipient Email Address *</label>
+                        <input type="email" id="email-recipient" name="email-recipient" required>
+                        <small class="form-help">Agreement will be sent to this email address</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email-recipient-name">Recipient Name *</label>
+                        <input type="text" id="email-recipient-name" name="email-recipient-name" required>
+                        <small class="form-help">Name to use in email greeting</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="include-pdf-attachment" name="include-pdf-attachment" checked>
+                            <label for="include-pdf-attachment">Include PDF attachment</label>
+                        </div>
+                        <small class="form-help">Attach fillable PDF version of the agreement</small>
+                    </div>
+                    
+                    <div class="email-preview">
+                        <h3>Email Preview</h3>
+                        <div class="preview-summary">
+                            <p><strong>Subject:</strong> <span id="email-subject-preview">CA-66 Airport Usage License Agreement</span></p>
+                            <p><strong>From:</strong> AirSpace Integration, Inc.</p>
+                            <p><strong>Contents:</strong> Professional email with agreement details and next steps</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-email" class="btn btn-secondary">Cancel</button>
+                <button type="button" id="send-email" class="btn btn-success">📧 Send Agreement</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->1
     <footer class="site-footer" role="contentinfo">

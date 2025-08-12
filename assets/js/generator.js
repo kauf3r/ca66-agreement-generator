@@ -1,9 +1,14 @@
 // Document Generation & Agreement Preview System - Phase 3 Implementation
 import { AgreementTemplate } from './template.js';
+import { EmailClient } from './email-client.js';
+import { emailModalInstance } from './email-modal.js';
 
 export const DocumentGenerator = {
   // Current agreement data cache
   currentAgreement: null,
+  
+  // Email client instance
+  emailClient: new EmailClient(),
   
   // Generate complete legal agreement from validated form data
   generate: (formData) => {
@@ -377,6 +382,173 @@ export const DocumentGenerator = {
     };
   },
   
+  // Send agreement via email
+  sendEmail: async (emailOptions = {}) => {
+    try {
+      console.log('📧 Preparing to send agreement via email...');
+      
+      if (!DocumentGenerator.currentAgreement) {
+        throw new Error('No agreement available to send');
+      }
+      
+      const formData = DocumentGenerator.currentAgreement.data;
+      
+      // Use provided email address or fall back to form data
+      const recipientEmail = emailOptions.email || formData.email;
+      const recipientName = emailOptions.name || formData.licenseeName || 'Valued Pilot';
+      
+      if (!recipientEmail) {
+        throw new Error('No email address available for sending');
+      }
+      
+      // Prepare agreement data for email template
+      const agreementData = {
+        licensee: formData.licenseeName,
+        aircraft: `${formData.aircraftRegistration} - ${formData.aircraftMakeModel}`,
+        startDate: DocumentGenerator.formatDate(formData.startDate),
+        endDate: DocumentGenerator.formatDate(formData.endDate),
+        annualFee: '$250.00',
+        insuranceCompany: formData.insuranceCompany,
+        policyNumber: formData.policyNumber,
+        coverageAmount: DocumentGenerator.formatCurrency(formData.coverageAmount)
+      };
+      
+      // Generate PDF if requested
+      let pdfBuffer = null;
+      if (emailOptions.includePdf !== false) {
+        try {
+          // Check if PDF generator is available
+          if (window.PDFGenerator && typeof window.PDFGenerator.generateAgreementPDF === 'function') {
+            pdfBuffer = await window.PDFGenerator.generateAgreementPDF(formData);
+          } else {
+            console.warn('PDF generator not available, sending email without attachment');
+          }
+        } catch (pdfError) {
+          console.warn('PDF generation failed, sending email without attachment:', pdfError);
+        }
+      }
+      
+      // Send email using email client
+      const result = await DocumentGenerator.emailClient.sendAgreementEmail({
+        recipientEmail,
+        recipientName,
+        agreementData,
+        pdfBuffer,
+        includeAttachment: emailOptions.includePdf !== false
+      });
+      
+      if (result.success) {
+        console.log('✅ Agreement sent via email successfully');
+        return result;
+      } else {
+        throw new Error(result.error);
+      }
+      
+    } catch (error) {
+      console.error('❌ Email sending failed:', error);
+      throw error;
+    }
+  },
+  
+  // Show email modal/dialog
+  showEmailDialog: () => {
+    try {
+      if (!DocumentGenerator.currentAgreement) {
+        alert('Please generate an agreement first before sending via email.');
+        return;
+      }
+      
+      const formData = DocumentGenerator.currentAgreement.data;
+      const defaultEmail = formData.email || '';
+      const defaultName = formData.licenseeName || '';
+      
+      // Prepare agreement data for modal
+      const agreementData = {
+        licensee: formData.licenseeName,
+        aircraft: `${formData.aircraftRegistration} - ${formData.aircraftMakeModel}`,
+        startDate: formData.startDate,
+        endDate: formData.endDate
+      };
+      
+      // Show professional email modal
+      if (emailModalInstance) {
+        emailModalInstance.show(
+          defaultEmail,
+          defaultName,
+          agreementData,
+          DocumentGenerator.handleEmailSend
+        );
+      } else {
+        // Fallback to simple modal
+        DocumentGenerator.createSimpleEmailModal(defaultEmail, defaultName);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to show email dialog:', error);
+      alert('Unable to show email dialog. Please try again.');
+    }
+  },
+  
+  // Handle email send from modal
+  handleEmailSend: async (formData) => {
+    try {
+      await DocumentGenerator.sendEmail({
+        email: formData.email,
+        name: formData.name,
+        includePdf: formData.includePdf
+      });
+    } catch (error) {
+      console.error('❌ Email sending failed:', error);
+      // Error notification is handled by EmailClient
+      throw error; // Re-throw to keep modal open
+    }
+  },
+  
+  // Fallback simple modal (in case EmailModal fails to load)
+  createSimpleEmailModal: (defaultEmail, defaultName) => {
+    const email = prompt('Enter email address for sending agreement:', defaultEmail);
+    if (!email) return;
+    
+    const name = prompt('Enter recipient name:', defaultName) || defaultName;
+    const includePdf = confirm('Include PDF attachment?');
+    
+    DocumentGenerator.sendEmail({
+      email: email.trim(),
+      name: name.trim(),
+      includePdf
+    }).catch(error => {
+      alert(`Failed to send email: ${error.message}`);
+    });
+  },
+  
+  // Utility: Format date for display
+  formatDate: (dateString) => {
+    if (!dateString) return 'Not specified';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  },
+  
+  // Utility: Format currency
+  formatCurrency: (amount) => {
+    if (!amount) return '$0.00';
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(amount);
+    } catch {
+      return `$${amount}`;
+    }
+  },
+  
   // Initialize document generator (set up event listeners)
   init: () => {
     console.log('📄 Initializing Document Generator...');
@@ -393,7 +565,13 @@ export const DocumentGenerator = {
       editButton.addEventListener('click', DocumentGenerator.hidePreview);
     }
     
-    console.log('✅ Document Generator initialized');
+    // Set up email button handler
+    const emailButton = document.getElementById('email-agreement');
+    if (emailButton) {
+      emailButton.addEventListener('click', DocumentGenerator.showEmailDialog);
+    }
+    
+    console.log('✅ Document Generator initialized with email support');
   }
 };
 
