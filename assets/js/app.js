@@ -213,9 +213,9 @@ class AgreementApp {
     });
   }
   
-  // Handle form submission (validation + agreement generation)
-  handleFormSubmission() {
-    const submitButton = document.getElementById('generate-agreement');
+  // Handle form submission (validation + PDF generation)
+  async handleFormSubmission() {
+    const submitButton = document.getElementById('generate-pdf');
     
     console.log('Form submission initiated...');
     
@@ -227,51 +227,9 @@ class AgreementApp {
       return;
     }
     
-    try {
-      // Show loading states
-      UIEnhancements.showButtonLoading(submitButton, 'Generating Agreement...');
-      UIEnhancements.showLoading('Creating Agreement', 'Generating your legal agreement document...');
-      
-      // Get sanitized form data
-      const formData = this.getFormData();
-      console.log('Form data collected:', formData);
-      
-      // Calculate agreement dates
-      const agreementData = this.prepareAgreementData(formData);
-      console.log('Agreement data prepared:', agreementData);
-      
-      // Store for reference
-      this.agreementData = agreementData;
-      
-      // Generate and preview the agreement
-      console.log('🔄 Generating legal agreement...');
-      const success = DocumentGenerator.generateAndPreview(agreementData);
-      
-      // Hide loading states
-      UIEnhancements.hideLoading();
-      UIEnhancements.hideButtonLoading(submitButton);
-      
-      if (success) {
-        console.log('✅ Agreement generated successfully');
-        UIEnhancements.showButtonSuccess(submitButton, 'Agreement Generated!');
-        UIEnhancements.showToast('Agreement generated successfully!', 'success');
-        
-        // Clear saved form progress since form is complete
-        UIEnhancements.clearSavedProgress();
-      } else {
-        console.error('❌ Agreement generation failed');
-        UIEnhancements.showToast('Agreement generation failed. Please try again.', 'error');
-      }
-    } catch (error) {
-      console.error('❌ Agreement generation error:', error);
-      
-      // Hide loading states
-      UIEnhancements.hideLoading();
-      UIEnhancements.hideButtonLoading(submitButton);
-      
-      // Show error toast
-      UIEnhancements.showToast('Failed to generate agreement. Please check your form data and try again.', 'error');
-    }
+    // Generate PDF agreement directly
+    console.log('🔄 Generating PDF agreement via form submission...');
+    await this.generatePDFAgreement();
   }
   
   // Prepare comprehensive agreement data
@@ -282,7 +240,6 @@ class AgreementApp {
     const agreementData = {
       // Licensee Information (map form field names to template variables)
       licenseeName: formData['licensee-name'] || '',
-      companyName: formData['company-name'] || null,
       phone: formData['phone'] || '',
       email: formData['email'] || '',
       flightHoursConfirmed: formData['flight-hours-confirmation'] || false,

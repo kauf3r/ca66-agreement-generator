@@ -338,11 +338,11 @@ export const DocumentGenerator = {
   
   // Show loading state during generation
   showLoadingState: () => {
-    const generateButton = document.getElementById('generate-agreement');
-    if (generateButton) {
-      generateButton.textContent = 'Generating Agreement...';
-      generateButton.disabled = true;
-      generateButton.classList.add('loading');
+    const generatePdfButton = document.getElementById('generate-pdf');
+    if (generatePdfButton) {
+      generatePdfButton.textContent = 'Generating PDF...';
+      generatePdfButton.disabled = true;
+      generatePdfButton.classList.add('loading');
     }
     
     // Show progress indicator
@@ -354,11 +354,11 @@ export const DocumentGenerator = {
   
   // Hide loading state after generation
   hideLoadingState: () => {
-    const generateButton = document.getElementById('generate-agreement');
-    if (generateButton) {
-      generateButton.textContent = 'Generate Agreement';
-      generateButton.disabled = false;
-      generateButton.classList.remove('loading');
+    const generatePdfButton = document.getElementById('generate-pdf');
+    if (generatePdfButton) {
+      generatePdfButton.textContent = 'Generate PDF Agreement';
+      generatePdfButton.disabled = false;
+      generatePdfButton.classList.remove('loading');
     }
     
     // Restore progress indicator

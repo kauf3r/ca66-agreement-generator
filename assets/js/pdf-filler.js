@@ -8,7 +8,6 @@ export const PDFFiller = {
   fieldMapping: {
     'AGREEMENT-DATE': 'agreementDate',
     'LICENSEE-NAME': 'licenseeName',
-    'COMPANY-NAME': 'companyName',
     'PHONE': 'phone',
     'EMAIL': 'email',
     'PILOT-CERT': 'pilotCertificate',
@@ -41,7 +40,6 @@ export const PDFFiller = {
     const pdfData = {
       // Licensee Information
       'LICENSEE-NAME': formData['licensee-name'] || '',
-      'COMPANY-NAME': formData['company-name'] || '',
       'PHONE': formData['phone'] || '',
       'EMAIL': formData['email'] || '',
       'PILOT-CERT': formData['pilot-certificate'] || '',
