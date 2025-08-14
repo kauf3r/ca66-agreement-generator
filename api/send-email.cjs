@@ -13,6 +13,8 @@ module.exports = async function handler(req, res) {
         method: req.method,
         hasGmailUser: !!process.env.GMAIL_USER,
         hasGmailPassword: !!process.env.GMAIL_APP_PASSWORD,
+        gmailUserLength: process.env.GMAIL_USER?.length || 0,
+        gmailPasswordLength: process.env.GMAIL_APP_PASSWORD?.length || 0,
         timestamp: new Date().toISOString()
     });
 
@@ -80,7 +82,7 @@ module.exports = async function handler(req, res) {
         }
 
         // Create Gmail SMTP transporter
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
                 user: process.env.GMAIL_USER,
@@ -89,8 +91,20 @@ module.exports = async function handler(req, res) {
         });
 
         // Verify SMTP connection
-        await transporter.verify();
-        console.log('Gmail SMTP connection verified successfully');
+        try {
+            console.log('🔍 Testing Gmail SMTP connection...');
+            await transporter.verify();
+            console.log('✅ Gmail SMTP connection verified successfully');
+        } catch (smtpError) {
+            console.error('❌ Gmail SMTP connection failed:', {
+                error: smtpError.message,
+                code: smtpError.code,
+                responseCode: smtpError.responseCode,
+                gmailUser: process.env.GMAIL_USER,
+                passwordLength: process.env.GMAIL_APP_PASSWORD?.length
+            });
+            throw new Error(`Gmail SMTP connection failed: ${smtpError.message}`);
+        }
 
         // Prepare email content
         const subject = `CA-66 Airport Usage License Agreement - ${agreementData.licensee || recipientName}`;
@@ -101,39 +115,77 @@ module.exports = async function handler(req, res) {
         // Plain text fallback
         const textContent = generateTextEmail(recipientName, agreementData);
 
-        // Email options
+        // Email options with CC to admin
+        const adminCC = 'kaufman@airspaceintegration.com';
         const mailOptions = {
             from: `"AirSpace Integration" <${process.env.GMAIL_USER}>`,
             to: recipientEmail,
+            cc: adminCC,
             replyTo: process.env.GMAIL_USER,
             subject: subject,
             html: htmlContent,
             text: textContent,
         };
 
+        console.log('📧 Email recipients configured:');
+        console.log('   TO:', recipientEmail);
+        console.log('   CC:', adminCC);
+        console.log('   FROM:', process.env.GMAIL_USER);
+
         // Add PDF attachment if provided and requested
         if (includeAttachment && pdfBuffer) {
             try {
                 console.log('🔄 Processing PDF attachment, base64 length:', pdfBuffer.length);
+                
+                // Validate base64 format
+                if (typeof pdfBuffer !== 'string') {
+                    throw new Error('PDF buffer must be base64 string');
+                }
+                
+                if (pdfBuffer.length < 13000) { // ~10KB base64 encoded
+                    throw new Error(`PDF base64 too small (${pdfBuffer.length} chars) - likely invalid`);
+                }
+                
                 const pdfData = Buffer.from(pdfBuffer, 'base64');
                 console.log('📄 PDF buffer converted, size:', pdfData.length, 'bytes');
                 
-                const filename = `CA66_Agreement_${agreementData.licensee?.replace(/\s+/g, '_') || 'Agreement'}.pdf`;
+                // Validate decoded PDF size
+                if (pdfData.length < 10000) {
+                    throw new Error(`PDF too small (${pdfData.length} bytes) - appears corrupted`);
+                }
+                
+                if (pdfData.length > 25 * 1024 * 1024) { // 25MB Gmail limit
+                    throw new Error(`PDF too large (${pdfData.length} bytes) - exceeds Gmail limit`);
+                }
+                
+                // Validate PDF header (should start with %PDF)
+                const pdfHeader = pdfData.subarray(0, 4).toString();
+                if (pdfHeader !== '%PDF') {
+                    throw new Error(`Invalid PDF format - header: ${pdfHeader}`);
+                }
+                
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const filename = `CA66_Agreement_${agreementData.licensee?.replace(/\s+/g, '_') || 'Agreement'}_${timestamp}.pdf`;
+                
                 mailOptions.attachments = [{
                     filename: filename,
                     content: pdfData,
                     contentType: 'application/pdf'
                 }];
-                console.log('✅ PDF attachment added to email:', filename);
+                
+                console.log('✅ PDF attachment validated and added to email:');
+                console.log('   Filename:', filename);
+                console.log('   Size:', pdfData.length, 'bytes');
+                console.log('   Recipients: TO =', recipientEmail, '| CC =', adminCC);
+                
             } catch (pdfError) {
-                console.error('❌ PDF attachment error:', pdfError);
-                // Continue without attachment rather than failing
-                console.warn('⚠️ Continuing to send email without PDF attachment due to processing error');
+                console.error('❌ PDF attachment validation failed:', pdfError.message);
+                throw new Error(`Failed to attach PDF: ${pdfError.message}`);
             }
         } else if (includeAttachment) {
-            console.warn('⚠️ PDF attachment requested but no PDF buffer provided to server');
+            throw new Error('PDF attachment requested but no PDF buffer provided to server');
         } else {
-            console.log('📧 Email configured to send without PDF attachment');
+            console.log('📧 Email configured to send without PDF attachment (includeAttachment=false)');
         }
 
         // Send email with retry logic

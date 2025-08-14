@@ -402,12 +402,55 @@ class AgreementApp {
       // Preview the PDF in a new tab
       await PDFGenerator.previewPDF(pdfBytes);
       
+      // Automatically send email with PDF attachment
+      try {
+        console.log('📧 Automatically sending email with PDF attachment...');
+        UIEnhancements.showLoading('Sending Email', 'Sending your agreement via email...');
+        
+        // Prepare email data
+        const emailData = {
+          recipientEmail: formData['email'],
+          recipientName: formData['licensee-name'] || 'Valued Pilot',
+          agreementData: {
+            licensee: formData['licensee-name'],
+            aircraft: `${formData['aircraft-registration']} - ${formData['aircraft-make-model']}`,
+            startDate: formData['start-date'],
+            endDate: formData['end-date'],
+            insuranceCompany: formData['insurance-company'],
+            policyNumber: formData['policy-number'],
+            coverageAmount: formData['coverage-amount']
+          },
+          pdfBuffer: pdfBytes,
+          includeAttachment: true
+        };
+        
+        // Send email using DocumentGenerator's email client
+        const emailResult = await DocumentGenerator.emailClient.sendAgreementEmail(emailData);
+        
+        if (emailResult.success) {
+          console.log('✅ Email sent successfully with PDF attachment');
+          UIEnhancements.showToast(
+            `Agreement sent successfully to ${formData['email']}! A copy was also sent to kaufman@airspaceintegration.com for records.`, 
+            'success'
+          );
+        } else {
+          throw new Error(emailResult.error);
+        }
+        
+      } catch (emailError) {
+        console.error('❌ Email sending failed:', emailError);
+        UIEnhancements.showToast(
+          'PDF generated successfully, but email sending failed: ' + emailError.message, 
+          'warning'
+        );
+      }
+      
       // Hide loading states
       UIEnhancements.hideLoading();
       UIEnhancements.hideButtonLoading(generatePdfButton);
       
       // Show success animation and toast
-      UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated!');
+      UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated & Emailed!');
       UIEnhancements.showToast('PDF generated successfully! Check the new tab to view your agreement.', 'success');
       
       console.log('PDF agreement generation completed');

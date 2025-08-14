@@ -54,8 +54,12 @@ class EmailClient {
             // Send email with retry logic
             const result = await this._sendWithRetry(payload);
 
-            // Show success message
-            this._showSuccessMessage('Agreement sent successfully!', result);
+            // Show success message with CC confirmation
+            this._showSuccessMessage(
+                `Agreement sent successfully to ${emailData.recipientEmail}!\n\n` +
+                `✅ A copy was also sent to kaufman@airspaceintegration.com for records.`, 
+                result
+            );
 
             return {
                 success: true,
@@ -154,39 +158,66 @@ class EmailClient {
      * @private
      */
     async _convertPdfToBase64(pdfBuffer) {
-        if (!pdfBuffer) return null;
+        if (!pdfBuffer || pdfBuffer.length === 0) {
+            throw new Error('Empty or null PDF buffer provided for conversion');
+        }
+
+        console.log('🔄 Converting PDF to base64 - Input type:', typeof pdfBuffer, 'Size:', pdfBuffer.length, 'bytes');
 
         try {
-            // If it's already a string (base64), return as is
+            // If it's already a string (base64), validate and return
             if (typeof pdfBuffer === 'string') {
+                if (pdfBuffer.length < 1000) {
+                    throw new Error('Base64 string appears too short to be a valid PDF');
+                }
+                console.log('✅ PDF is already base64 string, size:', pdfBuffer.length, 'characters');
                 return pdfBuffer;
             }
 
+            let bytes;
+            
             // If it's an ArrayBuffer or Uint8Array, convert to base64
             if (pdfBuffer instanceof ArrayBuffer || pdfBuffer instanceof Uint8Array) {
-                const bytes = new Uint8Array(pdfBuffer);
-                let binary = '';
-                for (let i = 0; i < bytes.byteLength; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary);
+                bytes = new Uint8Array(pdfBuffer);
             }
-
             // If it's a Blob, read as ArrayBuffer first
-            if (pdfBuffer instanceof Blob) {
+            else if (pdfBuffer instanceof Blob) {
                 const arrayBuffer = await pdfBuffer.arrayBuffer();
-                const bytes = new Uint8Array(arrayBuffer);
-                let binary = '';
-                for (let i = 0; i < bytes.byteLength; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary);
+                bytes = new Uint8Array(arrayBuffer);
+            }
+            else {
+                throw new Error(`Unsupported PDF buffer format: ${typeof pdfBuffer}`);
             }
 
-            throw new Error('Unsupported PDF buffer format');
+            // Validate PDF size
+            if (bytes.byteLength < 10000) {
+                throw new Error(`PDF buffer too small (${bytes.byteLength} bytes) - likely invalid`);
+            }
+            
+            if (bytes.byteLength > 25 * 1024 * 1024) { // 25MB Gmail limit
+                throw new Error(`PDF buffer too large (${bytes.byteLength} bytes) - exceeds Gmail limit`);
+            }
+
+            // Convert to binary string
+            let binary = '';
+            const chunkSize = 8192; // Process in chunks to avoid call stack issues
+            
+            for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+                const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.byteLength));
+                binary += String.fromCharCode.apply(null, chunk);
+            }
+            
+            // Convert to base64
+            const base64 = btoa(binary);
+            
+            console.log('✅ PDF base64 conversion complete - Output size:', base64.length, 'characters');
+            console.log('📊 Compression ratio:', ((base64.length / bytes.byteLength) * 100).toFixed(1) + '%');
+            
+            return base64;
+            
         } catch (error) {
-            console.warn('Failed to convert PDF to base64:', error);
-            return null; // Continue without attachment
+            console.error('❌ Failed to convert PDF to base64:', error);
+            throw new Error('PDF conversion failed: ' + error.message);
         }
     }
 

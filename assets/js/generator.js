@@ -421,11 +421,23 @@ export const DocumentGenerator = {
           if (window.PDFGenerator && typeof window.PDFGenerator.generateAgreementPDF === 'function') {
             console.log('📄 Generating PDF for email attachment...');
             pdfBuffer = await window.PDFGenerator.generateAgreementPDF(formData);
-            console.log('✅ PDF generated successfully, size:', pdfBuffer?.length, 'bytes');
+            console.log('📊 PDF generation result - Type:', typeof pdfBuffer, 'Size:', pdfBuffer?.length, 'bytes');
             
+            // CRITICAL: Verify PDF is valid and has substantial content
             if (!pdfBuffer || pdfBuffer.length === 0) {
               throw new Error('PDF generation returned empty buffer');
             }
+            
+            if (pdfBuffer.length < 10000) { // PDF should be at least 10KB for a real agreement
+              throw new Error(`PDF appears incomplete (${pdfBuffer.length} bytes) - template may not have loaded`);
+            }
+            
+            // Verify it's a proper Uint8Array/ArrayBuffer
+            if (!(pdfBuffer instanceof Uint8Array) && !(pdfBuffer instanceof ArrayBuffer)) {
+              throw new Error(`PDF buffer is wrong type: ${typeof pdfBuffer}`);
+            }
+            
+            console.log('✅ PDF validation passed - Valid PDF with', pdfBuffer.length, 'bytes');
           } else {
             throw new Error('PDF generator not available');
           }

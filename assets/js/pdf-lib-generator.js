@@ -19,12 +19,12 @@ export class PDFLibGenerator {
       // Import pdf-lib dynamically (it's loaded via CDN)
       const { PDFDocument, rgb } = PDFLib;
       
-      // TEMPORARY: Force July29 text overlay template for fine-tuning
-      console.log('🚨🚨🚨 FORCED MODE ACTIVE: Using July29 9-page text overlay template 🚨🚨🚨');
-      let templatePath = 'assets/examples/[TEMPLATE] New CA66 Monterey Bay Academy Airport License Agreement_July29.pdf';
+      // Use the complete CA-66 agreement template
+      console.log('📄 Loading CA66 template from assets folder...');
+      let templatePath = 'assets/examples/CA66_Agreement_Template.pdf';
       let templateBytes = await this.fetchPDFTemplate(templatePath);
       let useFillableForm = false;
-      console.log('🚨 Template loaded. Should be 9 pages, not fillable form! 🚨');
+      console.log('🚨 Template loaded. Should be complete 9-page legal agreement! 🚨');
       
       // Load the PDF document
       const pdfDoc = await PDFDocument.load(templateBytes);
