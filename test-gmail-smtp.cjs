@@ -11,8 +11,8 @@ async function testGmailSMTP() {
     console.log('🧪 Testing Gmail SMTP Configuration...\n');
     
     // Load environment variables
-    const gmailUser = 'theandykaufman@gmail.com';
-    const gmailPassword = 'iaodyqcbkkxaaems'; // App password without spaces
+    const gmailUser = process.env.GMAIL_USER || 'your-gmail@gmail.com';
+    const gmailPassword = process.env.GMAIL_APP_PASSWORD || 'your-app-password';
     
     console.log('📋 Configuration:');
     console.log(`   Gmail User: ${gmailUser}`);

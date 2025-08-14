@@ -37,3 +37,8 @@ build/
 *.temp
 .vercel
 env.local
+
+# Security - Test files with potential credentials
+test-gmail-smtp.cjs
+test-email-*.js
+*-test-credentials.*

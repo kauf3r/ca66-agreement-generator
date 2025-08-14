@@ -11,7 +11,7 @@
 GMAIL_APP_PASSWORD=iaod yqcb kkxa aems
 
 # After (✅)
-GMAIL_APP_PASSWORD=iaodyqcbkkxaaems
+GMAIL_APP_PASSWORD=your-16-character-app-password
 ```
 
 ### ⚠️ 2. Vercel Environment Variables (ACTION REQUIRED)
@@ -24,8 +24,8 @@ GMAIL_APP_PASSWORD=iaodyqcbkkxaaems
 3. Add these variables:
 
 ```
-GMAIL_USER=theandykaufman@gmail.com
-GMAIL_APP_PASSWORD=iaodyqcbkkxaaems
+GMAIL_USER=your-gmail@gmail.com
+GMAIL_APP_PASSWORD=your-16-character-app-password
 NODE_ENV=production
 ```
 
@@ -63,8 +63,8 @@ async function testGmailSMTP() {
   const transporter = nodemailer.createTransporter({
     service: 'gmail',
     auth: {
-      user: 'theandykaufman@gmail.com',
-      pass: 'iaodyqcbkkxaaems'  // App password without spaces
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD  // App password from environment
     }
   });
 
@@ -74,8 +74,8 @@ async function testGmailSMTP() {
     
     // Send test email
     const result = await transporter.sendMail({
-      from: 'theandykaufman@gmail.com',
-      to: 'theandykaufman@gmail.com',
+      from: process.env.GMAIL_USER,
+      to: process.env.GMAIL_USER,
       subject: 'Test Email - CA-66 System',
       text: 'This is a test email from the CA-66 agreement system.'
     });
