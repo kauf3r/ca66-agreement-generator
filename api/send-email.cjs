@@ -18,10 +18,23 @@ module.exports = async function handler(req, res) {
         timestamp: new Date().toISOString()
     });
 
-    // Set CORS headers for frontend integration
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Set CORS headers for frontend integration (hardened security)
+    const allowedOrigins = [
+        'https://ca66-agreement-generator.vercel.app',
+        'https://ca66-airport-use-agreement.vercel.app',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3003'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
@@ -64,7 +77,7 @@ module.exports = async function handler(req, res) {
             includeAttachment
         });
 
-        // Input validation
+        // Enhanced input validation and sanitization
         if (!recipientEmail || !recipientName || !agreementData) {
             return res.status(400).json({
                 success: false,
@@ -78,6 +91,19 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({
                 success: false,
                 error: 'Invalid email address format'
+            });
+        }
+
+        // Sanitize input strings to prevent injection
+        const sanitizeString = (str) => String(str).replace(/[<>'"&]/g, '');
+        const sanitizedRecipientName = sanitizeString(recipientName);
+        const sanitizedRecipientEmail = sanitizeString(recipientEmail);
+
+        // Validate name length (prevent abuse)
+        if (sanitizedRecipientName.length > 100) {
+            return res.status(400).json({
+                success: false,
+                error: 'Recipient name too long (max 100 characters)'
             });
         }
 
@@ -106,20 +132,20 @@ module.exports = async function handler(req, res) {
             throw new Error(`Gmail SMTP connection failed: ${smtpError.message}`);
         }
 
-        // Prepare email content
-        const subject = `CA-66 Airport Usage License Agreement - ${agreementData.licensee || recipientName}`;
+        // Prepare email content (using sanitized values)
+        const subject = `CA-66 Airport Usage License Agreement - ${agreementData.licensee || sanitizedRecipientName}`;
         
         // HTML email template
-        const htmlContent = generateEmailTemplate(recipientName, agreementData);
+        const htmlContent = generateEmailTemplate(sanitizedRecipientName, agreementData);
         
         // Plain text fallback
-        const textContent = generateTextEmail(recipientName, agreementData);
+        const textContent = generateTextEmail(sanitizedRecipientName, agreementData);
 
         // Email options with CC to admin
         const adminCC = 'kaufman@airspaceintegration.com';
         const mailOptions = {
             from: `"AirSpace Integration" <${process.env.GMAIL_USER}>`,
-            to: recipientEmail,
+            to: sanitizedRecipientEmail,
             cc: adminCC,
             replyTo: process.env.GMAIL_USER,
             subject: subject,
@@ -128,7 +154,7 @@ module.exports = async function handler(req, res) {
         };
 
         console.log('📧 Email recipients configured:');
-        console.log('   TO:', recipientEmail);
+        console.log('   TO:', sanitizedRecipientEmail);
         console.log('   CC:', adminCC);
         console.log('   FROM:', process.env.GMAIL_USER);
 
@@ -176,7 +202,7 @@ module.exports = async function handler(req, res) {
                 console.log('✅ PDF attachment validated and added to email:');
                 console.log('   Filename:', filename);
                 console.log('   Size:', pdfData.length, 'bytes');
-                console.log('   Recipients: TO =', recipientEmail, '| CC =', adminCC);
+                console.log('   Recipients: TO =', sanitizedRecipientEmail, '| CC =', adminCC);
                 
             } catch (pdfError) {
                 console.error('❌ PDF attachment validation failed:', pdfError.message);

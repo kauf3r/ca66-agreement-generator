@@ -4,6 +4,19 @@ import { DateCalculator, FeeCalculator } from './calculator.js';
 import { AppConfig } from './config.js';
 import { getExhibitASection } from './exhibit-content.js';
 
+// Security: HTML escaping function to prevent XSS attacks
+const escapeHtml = (unsafe) => {
+  if (typeof unsafe !== 'string') {
+    unsafe = String(unsafe || '');
+  }
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 export const AgreementTemplate = {
   // Main agreement template with placeholder variables
   template: `
@@ -236,13 +249,13 @@ ${getExhibitASection()}
         
         Object.entries(replacements).forEach(([tag, value]) => {
           const regex = new RegExp(`\\[${tag}\\]`, 'g');
-          agreement = agreement.replace(regex, value || '');
+          agreement = agreement.replace(regex, escapeHtml(value || ''));
         });
       } else {
-        // Use original {{field}} format
+        // Use original {{field}} format - with XSS protection
         Object.keys(processedData).forEach(key => {
           const placeholder = new RegExp(`{{${key}}}`, 'g');
-          agreement = agreement.replace(placeholder, processedData[key] || '');
+          agreement = agreement.replace(placeholder, escapeHtml(processedData[key] || ''));
         });
         
         // Handle conditional company name
@@ -251,11 +264,11 @@ ${getExhibitASection()}
           return processedData.companyName ? content : '';
         });
         
-        // Handle additional insureds list
+        // Handle additional insureds list - with XSS protection
         const insureds = processedData.additionalInsureds || [];
         let insuredsHtml = '';
         insureds.forEach((insured, index) => {
-          insuredsHtml += `<li>${insured}</li>`;
+          insuredsHtml += `<li>${escapeHtml(insured)}</li>`;
         });
         agreement = agreement.replace(/{{#each additionalInsureds}}.*?{{\/each}}/s, insuredsHtml);
       }
@@ -340,7 +353,7 @@ ${getExhibitASection()}
           <div class="error-message">
             <h3>Unable to Generate Agreement</h3>
             <p>An error occurred while generating your agreement. Please check your form data and try again.</p>
-            <p><strong>Error Details:</strong> ${error.message || 'Unknown error'}</p>
+            <p><strong>Error Details:</strong> ${escapeHtml(error.message || 'Unknown error')}</p>
             <p>If this problem persists, please contact support.</p>
           </div>
         </main>
