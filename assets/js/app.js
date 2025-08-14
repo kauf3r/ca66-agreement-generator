@@ -7,6 +7,7 @@ import { DocumentGenerator } from './generator.js';
 import { PDFGenerator } from './pdf-generator.js';
 import { ExhibitModal } from './exhibit-modal.js';
 import { UIEnhancements } from './ui-enhancements.js';
+import './email-modal.js'; // Initialize email modal
 
 class AgreementApp {
   constructor() {
@@ -212,9 +213,9 @@ class AgreementApp {
     });
   }
   
-  // Handle form submission (validation + agreement generation)
-  handleFormSubmission() {
-    const submitButton = document.getElementById('generate-agreement');
+  // Handle form submission (validation + PDF generation)
+  async handleFormSubmission() {
+    const submitButton = document.getElementById('generate-pdf');
     
     console.log('Form submission initiated...');
     
@@ -226,51 +227,9 @@ class AgreementApp {
       return;
     }
     
-    try {
-      // Show loading states
-      UIEnhancements.showButtonLoading(submitButton, 'Generating Agreement...');
-      UIEnhancements.showLoading('Creating Agreement', 'Generating your legal agreement document...');
-      
-      // Get sanitized form data
-      const formData = this.getFormData();
-      console.log('Form data collected:', formData);
-      
-      // Calculate agreement dates
-      const agreementData = this.prepareAgreementData(formData);
-      console.log('Agreement data prepared:', agreementData);
-      
-      // Store for reference
-      this.agreementData = agreementData;
-      
-      // Generate and preview the agreement
-      console.log('🔄 Generating legal agreement...');
-      const success = DocumentGenerator.generateAndPreview(agreementData);
-      
-      // Hide loading states
-      UIEnhancements.hideLoading();
-      UIEnhancements.hideButtonLoading(submitButton);
-      
-      if (success) {
-        console.log('✅ Agreement generated successfully');
-        UIEnhancements.showButtonSuccess(submitButton, 'Agreement Generated!');
-        UIEnhancements.showToast('Agreement generated successfully!', 'success');
-        
-        // Clear saved form progress since form is complete
-        UIEnhancements.clearSavedProgress();
-      } else {
-        console.error('❌ Agreement generation failed');
-        UIEnhancements.showToast('Agreement generation failed. Please try again.', 'error');
-      }
-    } catch (error) {
-      console.error('❌ Agreement generation error:', error);
-      
-      // Hide loading states
-      UIEnhancements.hideLoading();
-      UIEnhancements.hideButtonLoading(submitButton);
-      
-      // Show error toast
-      UIEnhancements.showToast('Failed to generate agreement. Please check your form data and try again.', 'error');
-    }
+    // Generate PDF agreement directly
+    console.log('🔄 Generating PDF agreement via form submission...');
+    await this.generatePDFAgreement();
   }
   
   // Prepare comprehensive agreement data
@@ -281,7 +240,6 @@ class AgreementApp {
     const agreementData = {
       // Licensee Information (map form field names to template variables)
       licenseeName: formData['licensee-name'] || '',
-      companyName: formData['company-name'] || null,
       phone: formData['phone'] || '',
       email: formData['email'] || '',
       flightHoursConfirmed: formData['flight-hours-confirmation'] || false,
@@ -401,12 +359,55 @@ class AgreementApp {
       // Preview the PDF in a new tab
       await PDFGenerator.previewPDF(pdfBytes);
       
+      // Automatically send email with PDF attachment
+      try {
+        console.log('📧 Automatically sending email with PDF attachment...');
+        UIEnhancements.showLoading('Sending Email', 'Sending your agreement via email...');
+        
+        // Prepare email data
+        const emailData = {
+          recipientEmail: formData['email'],
+          recipientName: formData['licensee-name'] || 'Valued Pilot',
+          agreementData: {
+            licensee: formData['licensee-name'],
+            aircraft: `${formData['aircraft-registration']} - ${formData['aircraft-make-model']}`,
+            startDate: formData['start-date'],
+            endDate: formData['end-date'],
+            insuranceCompany: formData['insurance-company'],
+            policyNumber: formData['policy-number'],
+            coverageAmount: formData['coverage-amount']
+          },
+          pdfBuffer: pdfBytes,
+          includeAttachment: true
+        };
+        
+        // Send email using DocumentGenerator's email client
+        const emailResult = await DocumentGenerator.emailClient.sendAgreementEmail(emailData);
+        
+        if (emailResult.success) {
+          console.log('✅ Email sent successfully with PDF attachment');
+          UIEnhancements.showToast(
+            `Agreement sent successfully to ${formData['email']}! A copy was also sent to kaufman@airspaceintegration.com for records.`, 
+            'success'
+          );
+        } else {
+          throw new Error(emailResult.error);
+        }
+        
+      } catch (emailError) {
+        console.error('❌ Email sending failed:', emailError);
+        UIEnhancements.showToast(
+          'PDF generated successfully, but email sending failed: ' + emailError.message, 
+          'warning'
+        );
+      }
+      
       // Hide loading states
       UIEnhancements.hideLoading();
       UIEnhancements.hideButtonLoading(generatePdfButton);
       
       // Show success animation and toast
-      UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated!');
+      UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated & Emailed!');
       UIEnhancements.showToast('PDF generated successfully! Check the new tab to view your agreement.', 'success');
       
       console.log('PDF agreement generation completed');

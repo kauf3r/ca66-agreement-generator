@@ -27,10 +27,18 @@ export const ExhibitModal = {
    * Initialize the modal system
    */
   init() {
-    this.setupDOMReferences();
+    console.log('ExhibitModal: Initializing...');
+    
+    if (!this.setupDOMReferences()) {
+      console.error('ExhibitModal: Initialization failed - DOM elements not found');
+      return;
+    }
+    
     this.loadContent();
     this.setupEventListeners();
     this.interceptCheckbox();
+    
+    console.log('ExhibitModal: Initialization complete');
   },
   
   /**
@@ -46,10 +54,26 @@ export const ExhibitModal = {
     this.progressBar = this.modal?.querySelector('.scroll-progress-bar');
     this.checkboxElement = document.getElementById('airport-rules');
     
+    // Debug logging
+    console.log('ExhibitModal: Setting up DOM references...');
+    console.log('Modal element:', this.modal ? 'Found' : 'NOT FOUND');
+    console.log('Modal body:', this.modalBody ? 'Found' : 'NOT FOUND');
+    console.log('Modal content:', this.modalContent ? 'Found' : 'NOT FOUND');
+    console.log('Checkbox element:', this.checkboxElement ? 'Found' : 'NOT FOUND');
+    
     if (!this.modal || !this.modalBody || !this.modalContent || !this.checkboxElement) {
-      console.error('ExhibitModal: Required DOM elements not found');
+      console.error('ExhibitModal: Required DOM elements not found - modal initialization failed');
       return false;
     }
+    
+    console.log('ExhibitModal: All required DOM elements found');
+    
+    // Initialize modal state
+    this.modal.style.display = 'none';
+    this.modal.setAttribute('aria-hidden', 'true');
+    this.modal.classList.remove('show');
+    this.isOpen = false;
+    console.log('ExhibitModal: Initial state set');
     
     return true;
   },
@@ -86,9 +110,11 @@ export const ExhibitModal = {
       });
     }
     
-    // Scroll tracking
+    // Proper scroll tracking to detect when user reaches bottom
     if (this.modalBody) {
-      this.modalBody.addEventListener('scroll', () => this.handleScroll());
+      this.modalBody.addEventListener('scroll', () => {
+        this.handleScroll();
+      });
     }
     
     // Keyboard events
@@ -102,28 +128,40 @@ export const ExhibitModal = {
    * Intercept checkbox clicks to show modal first
    */
   interceptCheckbox() {
-    if (!this.checkboxElement) return;
+    if (!this.checkboxElement) {
+      console.error('ExhibitModal: Checkbox element not found for interception');
+      return;
+    }
+    
+    console.log('ExhibitModal: Setting up checkbox interception...');
     
     // Add visual indicator that checkbox is interactive
     const label = this.checkboxElement.nextElementSibling;
     if (label && label.tagName === 'LABEL') {
       label.style.cursor = 'pointer';
       label.title = 'Click to view Exhibit A airport rules';
+      console.log('ExhibitModal: Label styling applied');
     }
     
     // Intercept checkbox clicks
     this.checkboxElement.addEventListener('click', (e) => {
+      console.log('ExhibitModal: Checkbox clicked, hasBeenViewed:', this.hasBeenViewed);
       if (!this.hasBeenViewed) {
+        console.log('ExhibitModal: Preventing default and showing modal');
         e.preventDefault();
         e.stopPropagation();
         this.show();
+      } else {
+        console.log('ExhibitModal: Allowing checkbox to be checked (already viewed)');
       }
     });
     
     // Also intercept label clicks
     if (label) {
       label.addEventListener('click', (e) => {
+        console.log('ExhibitModal: Label clicked, hasBeenViewed:', this.hasBeenViewed);
         if (!this.hasBeenViewed) {
+          console.log('ExhibitModal: Preventing label default and showing modal');
           e.preventDefault();
           this.show();
         }
@@ -132,10 +170,42 @@ export const ExhibitModal = {
   },
   
   /**
+   * Force show the modal (for testing)
+   */
+  forceShow() {
+    console.log('ExhibitModal: Force showing modal for testing...');
+    this.hasBeenViewed = false;
+    this.show();
+  },
+  
+  /**
    * Show the modal
    */
   show() {
-    if (!this.modal || this.isOpen) return;
+    console.log('ExhibitModal.show() called, modal exists:', !!this.modal, 'isOpen:', this.isOpen);
+    
+    // Reset mechanism - check if modal is actually visible when isOpen is true
+    if (this.isOpen && this.modal) {
+      const isActuallyVisible = this.modal.style.display !== 'none' && 
+                                this.modal.classList.contains('show') &&
+                                this.modal.getAttribute('aria-hidden') === 'false';
+      if (!isActuallyVisible) {
+        console.log('ExhibitModal: Detected stuck state, resetting...');
+        this.isOpen = false;
+      }
+    }
+    
+    if (!this.modal) {
+      console.log('ExhibitModal: Modal element not found');
+      return;
+    }
+    
+    if (this.isOpen) {
+      console.log('ExhibitModal: Not showing modal (already open)');
+      return;
+    }
+    
+    console.log('ExhibitModal: Proceeding to show modal...');
     
     // Store current focus
     this.focusBeforeModal = document.activeElement;
@@ -146,7 +216,10 @@ export const ExhibitModal = {
     // Show modal
     this.modal.setAttribute('aria-hidden', 'false');
     this.modal.classList.add('show');
+    this.modal.style.display = 'flex'; // Force display
     this.isOpen = true;
+    
+    console.log('ExhibitModal: Modal shown with display:', this.modal.style.display, 'classes:', this.modal.className);
     
     // Focus management
     setTimeout(() => {
@@ -172,7 +245,10 @@ export const ExhibitModal = {
     // Hide modal
     this.modal.setAttribute('aria-hidden', 'true');
     this.modal.classList.remove('show');
+    this.modal.style.display = 'none'; // Force hide
     this.isOpen = false;
+    
+    console.log('ExhibitModal: Modal hidden');
     
     // Restore body scroll
     document.body.style.overflow = '';
@@ -188,11 +264,9 @@ export const ExhibitModal = {
    * Handle user acknowledgment
    */
   acknowledge() {
+    // Only allow acknowledgment if user has scrolled to bottom
     if (!this.scrolledToBottom) {
-      // Scroll to bottom if not already there
-      if (this.modalBody) {
-        this.modalBody.scrollTop = this.modalBody.scrollHeight;
-      }
+      console.log('❌ Cannot acknowledge - user has not scrolled to bottom');
       return;
     }
     
@@ -219,45 +293,24 @@ export const ExhibitModal = {
    * Handle scroll events to track reading progress
    */
   handleScroll() {
-    if (!this.modalBody || !this.progressBar) return;
+    if (!this.modalBody) return;
     
-    const scrollTop = this.modalBody.scrollTop;
-    const scrollHeight = this.modalBody.scrollHeight;
-    const clientHeight = this.modalBody.clientHeight;
-    
-    // Calculate scroll percentage
+    const { scrollTop, scrollHeight, clientHeight } = this.modalBody;
     const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
     
     // Update progress bar
-    this.progressBar.style.height = `${Math.min(scrollPercentage, 100)}%`;
-    
-    // Check if scrolled to bottom (with larger tolerance for better UX)
-    const tolerance = 50; // Increased tolerance for mobile and different browsers
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - tolerance;
-    
-    // Debug logging (remove in production)
-    if (window.CA66Debug) {
-      console.log('Scroll Debug:', {
-        scrollTop,
-        clientHeight,
-        scrollHeight,
-        scrollPercentage: scrollPercentage.toFixed(1),
-        isAtBottom,
-        scrolledToBottom: this.scrolledToBottom
-      });
+    if (this.progressBar) {
+      this.progressBar.style.width = Math.min(scrollPercentage, 100) + '%';
     }
     
-    if (isAtBottom && !this.scrolledToBottom) {
-      this.scrolledToBottom = true;
-      this.enableAcknowledgeButton();
-      console.log('✅ Scrolled to bottom - acknowledge button enabled');
-    }
+    // Check if user has scrolled to bottom (with 50px threshold)
+    const threshold = 50;
+    const hasReachedBottom = scrollTop + clientHeight >= scrollHeight - threshold;
     
-    // Fallback: Enable button if user has scrolled 95% of content
-    if (scrollPercentage >= 95 && !this.scrolledToBottom) {
+    if (hasReachedBottom && !this.scrolledToBottom) {
       this.scrolledToBottom = true;
       this.enableAcknowledgeButton();
-      console.log('✅ 95% scroll reached - acknowledge button enabled');
+      console.log('✅ User has scrolled to bottom - acknowledge button enabled');
     }
   },
   
@@ -267,8 +320,9 @@ export const ExhibitModal = {
   enableAcknowledgeButton() {
     if (this.acknowledgeButton) {
       this.acknowledgeButton.disabled = false;
-      this.acknowledgeButton.textContent = 'I Have Read and Understand';
+      this.acknowledgeButton.textContent = '✓ I Have Read and Understand These Rules';
       this.acknowledgeButton.style.cursor = 'pointer';
+      this.acknowledgeButton.classList.add('enabled');
     }
     
     if (this.scrollNotice) {
@@ -281,25 +335,27 @@ export const ExhibitModal = {
    * Reset scroll state when modal is opened
    */
   resetScrollState() {
+    // Properly disable button until user scrolls to bottom
     this.scrolledToBottom = false;
     
     if (this.acknowledgeButton) {
       this.acknowledgeButton.disabled = true;
-      this.acknowledgeButton.textContent = '⏬ Scroll to read all terms first';
+      this.acknowledgeButton.textContent = '📜 Please Scroll to Read All Terms';
       this.acknowledgeButton.style.cursor = 'not-allowed';
     }
     
     if (this.scrollNotice) {
-      this.scrollNotice.textContent = 'Please scroll down to read all airport rules and regulations';
+      this.scrollNotice.textContent = 'Please scroll down to read all terms and regulations';
       this.scrollNotice.classList.remove('completed');
-    }
-    
-    if (this.progressBar) {
-      this.progressBar.style.height = '0%';
     }
     
     if (this.modalBody) {
       this.modalBody.scrollTop = 0;
+    }
+    
+    // Update progress bar
+    if (this.progressBar) {
+      this.progressBar.style.width = '0%';
     }
   },
   
@@ -385,12 +441,6 @@ export const ExhibitModal = {
     return this.hasBeenViewed && this.checkboxElement?.checked;
   },
   
-  /**
-   * Force show modal (for testing or admin purposes)
-   */
-  forceShow() {
-    this.show();
-  },
   
   /**
    * Reset acknowledgment state (for testing)
@@ -402,3 +452,18 @@ export const ExhibitModal = {
     }
   }
 };
+
+// Expose to global scope for testing
+if (typeof window !== 'undefined') {
+  window.ExhibitModal = ExhibitModal;
+  // Add manual test function
+  window.testExhibitModal = () => {
+    console.log('Testing Exhibit Modal...');
+    console.log('Modal element:', ExhibitModal.modal);
+    console.log('Checkbox element:', ExhibitModal.checkboxElement);
+    console.log('Is Open:', ExhibitModal.isOpen);
+    console.log('Has Been Viewed:', ExhibitModal.hasBeenViewed);
+    console.log('Manually calling show()...');
+    ExhibitModal.show();
+  };
+}

@@ -3,22 +3,20 @@
   "version": "1.0.0",
   "description": "CA-66 Airport Usage License Agreement Generator",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "start": "python -m http.server 8000",
-    "test-pdf": "node test-pdf-filler.js"
+    "test-pdf": "node test-pdf-filler.js",
+    "build": "echo 'Static site - no build needed'"
   },
   "dependencies": {
-    "@webcomponents/webcomponentsjs": "^2.8.0",
-    "lit": "^3.3.1",
     "pdf-lib": "^1.17.1",
-    "resend": "^6.0.1"
+    "nodemailer": "^6.9.7"
   },
-  "keywords": [
-    "pdf",
-    "agreement",
-    "aviation",
-    "form-generator"
-  ],
+  "devDependencies": {},
+  "keywords": ["pdf", "agreement", "aviation", "form-generator"],
   "author": "AirSpace Integration, Inc.",
   "license": "MIT"
 }

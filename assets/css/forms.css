@@ -245,13 +245,12 @@
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
   transition: all 0.2s ease;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
 }
 
 .checkbox-group:hover {
   background: var(--bg-hover);
-  border-radius: var(--radius-sm);
-  padding: var(--space-xs);
-  margin: -var(--space-xs) -var(--space-xs) var(--space-sm) -var(--space-xs);
 }
 
 .checkbox-group input[type="checkbox"] {

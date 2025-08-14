@@ -154,10 +154,6 @@ export const UIManager = {
         }
         break;
         
-      case 'company-name':
-        // Company name is optional
-        validation = { valid: true };
-        break;
         
       default:
         // For fields without specific validation, just check if required
@@ -213,13 +209,8 @@ export const UIManager = {
       }
     });
     
-    // Enable/disable generate buttons
-    const generateButton = document.getElementById('generate-agreement');
+    // Enable/disable generate PDF button
     const generatePdfButton = document.getElementById('generate-pdf');
-    
-    if (generateButton) {
-      generateButton.disabled = !isValid;
-    }
     
     if (generatePdfButton) {
       generatePdfButton.disabled = !isValid;
@@ -230,23 +221,10 @@ export const UIManager = {
   
   // Update button state based on form validation (without triggering validation)
   updateButtonState: () => {
-    const generateButton = document.getElementById('generate-agreement');
     const generatePdfButton = document.getElementById('generate-pdf');
     
     // Check validation state without re-running validations
     const isValid = UIManager.checkFormValidationState();
-    
-    if (generateButton) {
-      generateButton.disabled = !isValid;
-      
-      if (isValid) {
-        generateButton.classList.remove('disabled');
-        generateButton.setAttribute('title', 'Generate your agreement');
-      } else {
-        generateButton.classList.add('disabled');
-        generateButton.setAttribute('title', 'Complete all required fields to generate agreement');
-      }
-    }
     
     if (generatePdfButton) {
       generatePdfButton.disabled = !isValid;
@@ -386,7 +364,6 @@ export const UIManager = {
   // Set up button event handlers
   setupButtonHandlers: () => {
     const clearButton = document.getElementById('clear-form');
-    const generateButton = document.getElementById('generate-agreement');
     const generatePdfButton = document.getElementById('generate-pdf');
     const downloadPdfButton = document.getElementById('download-pdf');
     const printButton = document.getElementById('print-agreement');
@@ -396,33 +373,16 @@ export const UIManager = {
       clearButton.addEventListener('click', UIManager.clearForm);
     }
     
-    if (generateButton) {
-      generateButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (UIManager.isFormValid()) {
-          console.log('Form is valid, generating agreement...');
-          // Trigger agreement generation (this will be handled by the main app)
-          const generateEvent = new CustomEvent('generateAgreement', {
-            detail: { formValid: true }
-          });
-          document.dispatchEvent(generateEvent);
-        } else {
-          console.log('Form validation failed');
-          UIManager.scrollToFirstError();
-        }
-      });
-    }
-    
     if (generatePdfButton) {
       generatePdfButton.addEventListener('click', (e) => {
         e.preventDefault();
         if (UIManager.isFormValid()) {
           console.log('Form is valid, generating PDF agreement...');
-          // Trigger PDF generation
-          const generatePdfEvent = new CustomEvent('generatePDF', {
+          // Trigger PDF generation (this will be handled by the main app)
+          const generateEvent = new CustomEvent('generatePDF', {
             detail: { formValid: true }
           });
-          document.dispatchEvent(generatePdfEvent);
+          document.dispatchEvent(generateEvent);
         } else {
           console.log('Form validation failed');
           UIManager.scrollToFirstError();

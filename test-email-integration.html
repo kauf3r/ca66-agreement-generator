@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Integration Test - CA-66 Agreement Generator</title>
+    
+    <!-- Same stylesheets as main app -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/forms.css">
+    <link rel="stylesheet" href="assets/css/modal.css">
+    <link rel="stylesheet" href="assets/css/loading.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .test-section h3 {
+            color: #4a5568;
+            margin: 16px 0 8px 0;
+            font-size: 16px;
+        }
+        
+        .test-button {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 8px 8px 0;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .test-button:hover {
+            background: #2c5282;
+        }
+        
+        .test-button.success {
+            background: #48bb78;
+        }
+        
+        .test-button.success:hover {
+            background: #38a169;
+        }
+        
+        .test-button.warning {
+            background: #ed8936;
+        }
+        
+        .test-button.warning:hover {
+            background: #dd6b20;
+        }
+        
+        .test-log {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+        
+        .test-status {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        
+        .status-info {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        
+        .test-form input, .test-form textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .test-form label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #4a5568;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-section">
+            <h1>📧 Email Integration Test Suite</h1>
+            <p>Test the CA-66 Agreement Generator email functionality in isolation.</p>
+            <div id="main-status" class="test-status status-info">
+                Ready to test email integration...
+            </div>
+        </div>
+
+        <!-- Test 1: Email Client Test -->
+        <div class="test-section">
+            <h2>🔧 Test 1: Email Client Functionality</h2>
+            <p>Test the core email client without full agreement generation.</p>
+            
+            <div class="test-form">
+                <div class="form-grid">
+                    <div>
+                        <label for="test-email">Test Email Address:</label>
+                        <input type="email" id="test-email" value="test@example.com" placeholder="your-test@email.com">
+                    </div>
+                    <div>
+                        <label for="test-name">Test Name:</label>
+                        <input type="text" id="test-name" value="Test Pilot" placeholder="Test User Name">
+                    </div>
+                </div>
+                
+                <h3>Test Options:</h3>
+                <button class="test-button" onclick="testEmailClientBasic()">Basic Email Test</button>
+                <button class="test-button warning" onclick="testEmailClientWithPDF()">Test with Mock PDF</button>
+                <button class="test-button" onclick="testEmailValidation()">Test Validation</button>
+            </div>
+            
+            <div id="email-client-status"></div>
+        </div>
+
+        <!-- Test 2: Modal UI Test -->
+        <div class="test-section">
+            <h2>🎨 Test 2: Email Modal Interface</h2>
+            <p>Test the email modal UI components and interactions.</p>
+            
+            <button class="test-button success" onclick="testEmailModal()">Show Email Modal</button>
+            <button class="test-button" onclick="testModalWithData()">Modal with Pre-filled Data</button>
+            <button class="test-button" onclick="testModalValidation()">Test Modal Validation</button>
+            
+            <div id="modal-status"></div>
+        </div>
+
+        <!-- Test 3: Agreement Generator Integration -->
+        <div class="test-section">
+            <h2>🔗 Test 3: Generator Integration</h2>
+            <p>Test email functionality integrated with agreement generation.</p>
+            
+            <button class="test-button" onclick="createMockAgreement()">Create Mock Agreement</button>
+            <button class="test-button success" onclick="testGeneratorEmailFlow()">Test Email Flow</button>
+            <button class="test-button warning" onclick="clearMockAgreement()">Clear Mock Data</button>
+            
+            <div id="generator-status"></div>
+        </div>
+
+        <!-- Test 4: Serverless Function Test -->
+        <div class="test-section">
+            <h2>⚡ Test 4: Serverless Function</h2>
+            <p>Test the Vercel serverless email function directly.</p>
+            
+            <button class="test-button" onclick="testServerlessFunction()">Test /api/send-email</button>
+            <button class="test-button" onclick="testServerlessWithAttachment()">Test with PDF Attachment</button>
+            <button class="test-button warning" onclick="testServerlessErrorHandling()">Test Error Cases</button>
+            
+            <div id="serverless-status"></div>
+        </div>
+
+        <!-- Console Log -->
+        <div class="test-section">
+            <h2>📋 Test Console</h2>
+            <button class="test-button" onclick="clearTestLog()">Clear Log</button>
+            <button class="test-button" onclick="exportTestLog()">Export Log</button>
+            <div id="test-log" class="test-log"></div>
+        </div>
+    </div>
+
+    <!-- Email Modal (same as main app) -->
+    <div id="email-modal" class="modal-overlay" role="dialog" aria-labelledby="email-modal-title" aria-hidden="true">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="email-modal-title">📧 Send Agreement via Email</h2>
+                <button type="button" class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="email-form" class="email-form">
+                    <div class="form-group">
+                        <label for="email-recipient">Recipient Email Address *</label>
+                        <input type="email" id="email-recipient" name="email-recipient" required>
+                        <small class="form-help">Agreement will be sent to this email address</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email-recipient-name">Recipient Name *</label>
+                        <input type="text" id="email-recipient-name" name="email-recipient-name" required>
+                        <small class="form-help">Name to use in email greeting</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="include-pdf-attachment" name="include-pdf-attachment" checked>
+                            <label for="include-pdf-attachment">Include PDF attachment</label>
+                        </div>
+                        <small class="form-help">Attach fillable PDF version of the agreement</small>
+                    </div>
+                    
+                    <div class="email-preview">
+                        <h3>Email Preview</h3>
+                        <div class="preview-summary">
+                            <p><strong>Subject:</strong> <span id="email-subject-preview">CA-66 Airport Usage License Agreement</span></p>
+                            <p><strong>From:</strong> AirSpace Integration, Inc.</p>
+                            <p><strong>Contents:</strong> Professional email with agreement details and next steps</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-email" class="btn btn-secondary">Cancel</button>
+                <button type="button" id="send-email" class="btn btn-success">📧 Send Agreement</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load modules -->
+    <script type="module">
+        import { EmailClient } from './assets/js/email-client.js';
+        import { EmailModal } from './assets/js/email-modal.js';
+        import { DocumentGenerator } from './assets/js/generator.js';
+
+        // Global test variables
+        window.emailClient = new EmailClient();
+        window.emailModal = new EmailModal();
+        window.testLog = [];
+
+        // Test helper functions
+        window.log = function(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            window.testLog.push(logEntry);
+            
+            const logElement = document.getElementById('test-log');
+            if (logElement) {
+                logElement.innerHTML += `<div class="${type}">${logEntry}</div>`;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+            
+            console.log(message);
+        };
+
+        window.updateStatus = function(sectionId, message, type = 'info') {
+            const statusElement = document.getElementById(sectionId);
+            if (statusElement) {
+                statusElement.className = `test-status status-${type}`;
+                statusElement.textContent = message;
+            }
+            window.log(`Status (${sectionId}): ${message}`, type);
+        };
+
+        // Test functions
+        window.testEmailClientBasic = async function() {
+            window.log('Starting basic email client test...', 'info');
+            
+            try {
+                const testData = {
+                    recipientEmail: document.getElementById('test-email').value,
+                    recipientName: document.getElementById('test-name').value,
+                    agreementData: {
+                        licensee: 'Test Pilot',
+                        aircraft: 'N12345 - Cessna 172',
+                        startDate: 'January 15, 2025',
+                        endDate: 'January 15, 2026'
+                    },
+                    includeAttachment: false
+                };
+                
+                const result = await window.emailClient.sendAgreementEmail(testData);
+                
+                if (result.success) {
+                    window.updateStatus('email-client-status', 'Email test successful!', 'success');
+                } else {
+                    window.updateStatus('email-client-status', `Email test failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                window.updateStatus('email-client-status', `Email test error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testEmailModal = function() {
+            window.log('Testing email modal UI...', 'info');
+            
+            if (window.emailModal) {
+                window.emailModal.show('test@example.com', 'Test User', {
+                    licensee: 'Test Pilot'
+                }, async (formData) => {
+                    window.log(`Modal submitted with data: ${JSON.stringify(formData)}`, 'success');
+                    window.updateStatus('modal-status', 'Modal test completed successfully!', 'success');
+                    
+                    // Simulate email sending
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                });
+                
+                window.updateStatus('modal-status', 'Email modal opened for testing', 'info');
+            } else {
+                window.updateStatus('modal-status', 'Email modal not initialized', 'error');
+            }
+        };
+
+        window.createMockAgreement = function() {
+            window.log('Creating mock agreement data...', 'info');
+            
+            // Mock agreement data
+            const mockFormData = {
+                licenseeName: 'John Test Pilot',
+                email: 'pilot@example.com',
+                phone: '555-123-4567',
+                aircraftRegistration: 'N12345',
+                aircraftMakeModel: 'Cessna 172',
+                insuranceCompany: 'Test Aviation Insurance',
+                policyNumber: 'TEST-12345',
+                coverageAmount: 1500000,
+                startDate: '2025-01-15',
+                endDate: '2026-01-15'
+            };
+            
+            // Set mock agreement in DocumentGenerator
+            DocumentGenerator.currentAgreement = {
+                html: '<div>Mock Agreement HTML</div>',
+                data: mockFormData,
+                generatedAt: new Date(),
+                version: '1.0-test'
+            };
+            
+            window.updateStatus('generator-status', 'Mock agreement created successfully', 'success');
+        };
+
+        window.testGeneratorEmailFlow = function() {
+            if (!DocumentGenerator.currentAgreement) {
+                window.updateStatus('generator-status', 'No agreement available. Create mock agreement first.', 'error');
+                return;
+            }
+            
+            window.log('Testing generator email flow...', 'info');
+            DocumentGenerator.showEmailDialog();
+            window.updateStatus('generator-status', 'Email dialog opened from generator', 'info');
+        };
+
+        window.testServerlessFunction = async function() {
+            window.log('Testing serverless function directly...', 'info');
+            
+            try {
+                const testPayload = {
+                    recipientEmail: 'test@example.com',
+                    recipientName: 'Test User',
+                    agreementData: {
+                        licensee: 'Test Pilot',
+                        aircraft: 'N12345 - Cessna 172',
+                        startDate: 'January 15, 2025',
+                        endDate: 'January 15, 2026'
+                    },
+                    includeAttachment: false
+                };
+                
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    window.updateStatus('serverless-status', `Serverless test successful! Message ID: ${result.messageId}`, 'success');
+                } else {
+                    window.updateStatus('serverless-status', `Serverless test failed: ${result.error || 'Unknown error'}`, 'error');
+                }
+                
+            } catch (error) {
+                window.updateStatus('serverless-status', `Serverless test error: ${error.message}`, 'error');
+            }
+        };
+
+        window.clearTestLog = function() {
+            window.testLog = [];
+            document.getElementById('test-log').innerHTML = '';
+            window.log('Test log cleared', 'info');
+        };
+
+        window.clearMockAgreement = function() {
+            DocumentGenerator.currentAgreement = null;
+            window.updateStatus('generator-status', 'Mock agreement data cleared', 'info');
+        };
+
+        // Additional test functions
+        window.testEmailClientWithPDF = async function() {
+            window.log('Testing email client with mock PDF...', 'info');
+            
+            // Create a simple mock PDF buffer (base64 encoded)
+            const mockPdfBuffer = btoa('Mock PDF content for testing');
+            
+            const testData = {
+                recipientEmail: document.getElementById('test-email').value,
+                recipientName: document.getElementById('test-name').value,
+                agreementData: {
+                    licensee: 'Test Pilot with PDF',
+                    aircraft: 'N12345 - Cessna 172',
+                    startDate: 'January 15, 2025',
+                    endDate: 'January 15, 2026'
+                },
+                pdfBuffer: mockPdfBuffer,
+                includeAttachment: true
+            };
+            
+            try {
+                const result = await window.emailClient.sendAgreementEmail(testData);
+                
+                if (result.success) {
+                    window.updateStatus('email-client-status', 'Email with PDF test successful!', 'success');
+                } else {
+                    window.updateStatus('email-client-status', `Email with PDF test failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                window.updateStatus('email-client-status', `Email with PDF test error: ${error.message}`, 'error');
+            }
+        };
+
+        // Initialize
+        window.log('Email integration test suite loaded successfully!', 'success');
+        window.updateStatus('main-status', 'Test suite ready. All components loaded.', 'success');
+    </script>
+</body>
+</html>
