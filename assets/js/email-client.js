@@ -33,7 +33,13 @@ class EmailClient {
             // Convert PDF buffer to base64 if provided
             let pdfBase64 = null;
             if (emailData.pdfBuffer && emailData.includeAttachment !== false) {
+                console.log('📎 Converting PDF buffer to base64, input type:', typeof emailData.pdfBuffer, 'size:', emailData.pdfBuffer?.length);
                 pdfBase64 = await this._convertPdfToBase64(emailData.pdfBuffer);
+                console.log('✅ PDF converted to base64, output size:', pdfBase64?.length, 'characters');
+            } else if (emailData.includeAttachment !== false) {
+                console.warn('⚠️ PDF attachment requested but no PDF buffer provided');
+            } else {
+                console.log('📧 Sending email without PDF attachment as requested');
             }
 
             // Prepare request payload

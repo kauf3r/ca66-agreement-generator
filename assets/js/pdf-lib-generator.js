@@ -70,7 +70,9 @@ export class PDFLibGenerator {
    */
   static async fetchPDFTemplate(templatePath) {
     try {
-      const response = await fetch(templatePath);
+      // Properly encode the URL path to handle spaces and special characters
+      const encodedPath = templatePath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+      const response = await fetch(encodedPath);
       if (!response.ok) {
         throw new Error(`Failed to fetch template: ${response.status} ${response.statusText}`);
       }

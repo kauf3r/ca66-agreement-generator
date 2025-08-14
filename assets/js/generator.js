@@ -419,12 +419,30 @@ export const DocumentGenerator = {
         try {
           // Check if PDF generator is available
           if (window.PDFGenerator && typeof window.PDFGenerator.generateAgreementPDF === 'function') {
+            console.log('📄 Generating PDF for email attachment...');
             pdfBuffer = await window.PDFGenerator.generateAgreementPDF(formData);
+            console.log('✅ PDF generated successfully, size:', pdfBuffer?.length, 'bytes');
+            
+            if (!pdfBuffer || pdfBuffer.length === 0) {
+              throw new Error('PDF generation returned empty buffer');
+            }
           } else {
-            console.warn('PDF generator not available, sending email without attachment');
+            throw new Error('PDF generator not available');
           }
         } catch (pdfError) {
-          console.warn('PDF generation failed, sending email without attachment:', pdfError);
+          console.error('❌ PDF generation failed:', pdfError);
+          // Show user-friendly error and ask if they want to continue without PDF
+          const continueWithoutPdf = confirm(
+            `PDF generation failed: ${pdfError.message}\n\n` +
+            'Would you like to send the email without the PDF attachment?'
+          );
+          
+          if (!continueWithoutPdf) {
+            throw new Error('Email cancelled: PDF generation required but failed');
+          }
+          
+          console.warn('⚠️ Continuing to send email without PDF attachment');
+          pdfBuffer = null;
         }
       }
       

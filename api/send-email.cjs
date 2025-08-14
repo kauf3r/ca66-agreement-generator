@@ -58,6 +58,7 @@ module.exports = async function handler(req, res) {
             recipientName,
             hasAgreementData: !!agreementData,
             hasPdfBuffer: !!pdfBuffer,
+            pdfBufferLength: pdfBuffer ? pdfBuffer.length : 0,
             includeAttachment
         });
 
@@ -113,17 +114,26 @@ module.exports = async function handler(req, res) {
         // Add PDF attachment if provided and requested
         if (includeAttachment && pdfBuffer) {
             try {
+                console.log('🔄 Processing PDF attachment, base64 length:', pdfBuffer.length);
                 const pdfData = Buffer.from(pdfBuffer, 'base64');
+                console.log('📄 PDF buffer converted, size:', pdfData.length, 'bytes');
+                
+                const filename = `CA66_Agreement_${agreementData.licensee?.replace(/\s+/g, '_') || 'Agreement'}.pdf`;
                 mailOptions.attachments = [{
-                    filename: `CA66_Agreement_${agreementData.licensee?.replace(/\s+/g, '_') || 'Agreement'}.pdf`,
+                    filename: filename,
                     content: pdfData,
                     contentType: 'application/pdf'
                 }];
-                console.log('PDF attachment added to email');
+                console.log('✅ PDF attachment added to email:', filename);
             } catch (pdfError) {
-                console.error('PDF attachment error:', pdfError);
+                console.error('❌ PDF attachment error:', pdfError);
                 // Continue without attachment rather than failing
+                console.warn('⚠️ Continuing to send email without PDF attachment due to processing error');
             }
+        } else if (includeAttachment) {
+            console.warn('⚠️ PDF attachment requested but no PDF buffer provided to server');
+        } else {
+            console.log('📧 Email configured to send without PDF attachment');
         }
 
         // Send email with retry logic
