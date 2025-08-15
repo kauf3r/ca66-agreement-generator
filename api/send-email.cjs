@@ -136,7 +136,7 @@ module.exports = async function handler(req, res) {
         const subject = `CA-66 Airport Usage License Agreement - ${agreementData.licensee || sanitizedRecipientName}`;
         
         // HTML email template
-        const htmlContent = generateEmailTemplate(sanitizedRecipientName, agreementData);
+        const htmlContent = generateEmailTemplate(sanitizedRecipientName, agreementData, includeAttachment, pdfBuffer);
         
         // Plain text fallback
         const textContent = generateTextEmail(sanitizedRecipientName, agreementData);
@@ -273,7 +273,7 @@ async function sendEmailWithRetry(transporter, mailOptions, maxRetries = 3) {
 /**
  * Generate HTML email template
  */
-function generateEmailTemplate(recipientName, agreementData) {
+function generateEmailTemplate(recipientName, agreementData, includeAttachment = false, pdfBuffer = null) {
     return `
 <!DOCTYPE html>
 <html>
@@ -361,6 +361,11 @@ function generateEmailTemplate(recipientName, agreementData) {
         </div>
         
         <p>Your CA-66 Airport Usage License Agreement has been generated and is ready for your review. This agreement grants you access to the Monterey Bay Academy Airport under the terms and conditions specified.</p>
+        
+        ${includeAttachment && pdfBuffer ? 
+            '<div style="background: #e8f5e8; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #28a745;"><strong>📎 PDF Agreement Attached:</strong> Your complete 9-page CA-66 Agreement is attached to this email as a PDF file. Please download and review the attached document.</div>' : 
+            '<div style="background: #fff3cd; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #ffc107;"><strong>📄 Agreement Reference:</strong> This email contains agreement details for your records. The complete agreement document will be provided separately.</div>'
+        }
         
         <div class="agreement-details">
             <h3>Agreement Details</h3>

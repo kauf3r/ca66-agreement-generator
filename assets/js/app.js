@@ -571,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window) {
     window.CA66App = appInstance;
     window.DocumentGenerator = DocumentGenerator; // For console debugging
+    window.PDFGenerator = PDFGenerator; // For email integration
   }
 });
 
