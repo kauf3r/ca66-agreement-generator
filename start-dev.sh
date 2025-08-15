@@ -32,5 +32,6 @@ fi
 echo "✅ Gmail credentials loaded: $GMAIL_USER"
 echo "🔧 Starting Vercel development server..."
 
-# Start Vercel with environment variables
+# Start Vercel dev server
+# Vercel will automatically load environment variables from .env.development
 vercel dev --listen 3003

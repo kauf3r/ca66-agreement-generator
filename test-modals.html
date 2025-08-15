@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Testing - CA-66 Agreement Generator</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/forms.css">
+    <link rel="stylesheet" href="assets/css/modal.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    
+    <style>
+        body {
+            padding: 2rem;
+            font-family: var(--font-system);
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .test-title {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 2rem;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .test-btn.primary {
+            background: linear-gradient(135deg, #22c55e 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        
+        .test-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+        }
+        
+        .test-btn.secondary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .test-btn.secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .test-description {
+            margin-top: 2rem;
+            font-size: 1.1rem;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🎨 Modal Design Testing</h1>
+        <p class="test-description">
+            Test the beautiful, premium-designed modals with smooth animations and consistent styling.
+        </p>
+        
+        <div class="test-buttons">
+            <button class="test-btn primary" onclick="showSuccessModal()">
+                ✅ Show Success Modal
+            </button>
+            <button class="test-btn secondary" onclick="showExhibitModal()">
+                📄 Show Exhibit A Modal
+            </button>
+        </div>
+        
+        <div class="test-description">
+            <h3>Design Features:</h3>
+            <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+                <li>🎨 Premium glass-morphism effects with backdrop blur</li>
+                <li>🌈 Beautiful gradient backgrounds and smooth transitions</li>
+                <li>✨ Animated checkmark and micro-interactions</li>
+                <li>📱 Fully responsive design for all screen sizes</li>
+                <li>♿ Accessibility-focused with proper focus management</li>
+                <li>🎯 Consistent visual hierarchy and professional styling</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal-overlay success-modal" role="dialog" aria-labelledby="success-modal-title" aria-hidden="true">
+        <div class="modal-container success-container">
+            <div class="modal-header success-header">
+                <div class="success-icon-wrapper">
+                    <svg class="success-checkmark" viewBox="0 0 52 52">
+                        <circle class="success-checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="success-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <button type="button" class="modal-close success-close" aria-label="Close success modal">&times;</button>
+            </div>
+            <div class="modal-body success-body">
+                <div class="success-content">
+                    <h2 id="success-modal-title" class="success-title">Agreement Generated Successfully! 🎉</h2>
+                    <p class="success-message">
+                        Thank you, <strong>John Pilot</strong>, for completing your CA-66 Airport Usage License Agreement. 
+                        Your application has been processed and is ready for review.
+                    </p>
+                    
+                    <div class="success-details">
+                        <div class="success-detail-item">
+                            <div class="success-detail-icon">📧</div>
+                            <div class="success-detail-content">
+                                <h3>Email Sent</h3>
+                                <p>Your completed agreement has been emailed to <span style="font-weight: 600; color: #059669;">pilot@example.com</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="success-detail-item">
+                            <div class="success-detail-icon">📄</div>
+                            <div class="success-detail-content">
+                                <h3>PDF Document</h3>
+                                <p>A complete 9-page legal agreement with all your information filled in</p>
+                            </div>
+                        </div>
+                        
+                        <div class="success-detail-item">
+                            <div class="success-detail-icon">✅</div>
+                            <div class="success-detail-content">
+                                <h3>Next Steps</h3>
+                                <p>Review the agreement and bring it to your first visit to Monterey Bay Academy Airport</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="success-notice">
+                        <p><strong>Important:</strong> Please check your email (including spam folder) for the agreement. 
+                        A copy has also been sent to AirSpace Integration for processing.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer success-footer">
+                <div class="success-actions">
+                    <button type="button" class="btn btn-primary success-btn" onclick="hideSuccessModal()">
+                        Perfect! Thank You
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exhibit A Modal -->
+    <div id="exhibit-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-logo-section">
+                    <img src="assets/images/logos/airspace-integration-logo.png" alt="AirSpace Integration" class="modal-logo">
+                    <div class="modal-title-section">
+                        <h3>Exhibit A - Airport Rules and Regulations</h3>
+                        <p class="modal-subtitle">Monterey Bay Academy Airport</p>
+                    </div>
+                </div>
+                <button class="modal-close" aria-label="Close modal" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="exhibit-content">
+                    <div class="exhibit-intro">
+                        <p>This exhibit outlines the essential rules and regulations for safe operation at Monterey Bay Academy Airport.</p>
+                        <p>All pilots must read, understand, and acknowledge these terms before using the facility.</p>
+                    </div>
+
+                    <div class="rule-section">
+                        <h4>Flight Operations</h4>
+                        <p><strong>Pattern Altitude:</strong> 1,000 feet AGL for all traffic pattern operations.</p>
+                        <p><strong>Landing Direction:</strong> Left traffic pattern for all runways unless otherwise directed.</p>
+                        <p><strong>Radio Communications:</strong> Monitor and communicate on CTAF frequency 122.8.</p>
+                    </div>
+
+                    <div class="rule-section">
+                        <h4>Safety Requirements</h4>
+                        <p><strong>Pre-flight Inspection:</strong> Mandatory detailed inspection before each flight.</p>
+                        <p><strong>Weather Minimums:</strong> VFR conditions only - minimum 3 statute miles visibility.</p>
+                        <p><strong>Emergency Procedures:</strong> Familiarize yourself with airport emergency protocols.</p>
+                    </div>
+
+                    <div class="rule-section">
+                        <h4>Operational Restrictions</h4>
+                        <p><strong>Sabbath Observance:</strong> No operations from Friday sunset to Saturday sunset.</p>
+                        <p><strong>Aircraft Limitations:</strong> Single-engine reciprocating aircraft only, MTOW under 12,500 lbs.</p>
+                        <p><strong>Noise Abatement:</strong> Minimize noise over residential areas and academy facilities.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <p class="scroll-notice">Please scroll to read all terms</p>
+                <button class="modal-acknowledge" type="button" onclick="hideExhibitModal()">I Have Read and Understand</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            modal.setAttribute('aria-hidden', 'false');
+            modal.style.display = 'flex';
+            requestAnimationFrame(() => {
+                modal.classList.add('show');
+            });
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.setAttribute('aria-hidden', 'true');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 400);
+        }
+
+        function showExhibitModal() {
+            const modal = document.getElementById('exhibit-modal');
+            modal.setAttribute('aria-hidden', 'false');
+            modal.style.display = 'flex';
+            requestAnimationFrame(() => {
+                modal.classList.add('show');
+            });
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideExhibitModal() {
+            const modal = document.getElementById('exhibit-modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.setAttribute('aria-hidden', 'true');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 400);
+        }
+
+        // Close modals on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideSuccessModal();
+                hideExhibitModal();
+            }
+        });
+
+        // Close modals on outside click
+        document.getElementById('success-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('success-modal')) {
+                hideSuccessModal();
+            }
+        });
+
+        document.getElementById('exhibit-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                hideExhibitModal();
+            }
+        });
+
+        // Close button functionality
+        document.querySelector('.success-close').addEventListener('click', hideSuccessModal);
+        document.querySelector('#exhibit-modal .modal-close').addEventListener('click', hideExhibitModal);
+    </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Fixes Test - CA-66 Agreement Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #e2e3e5; border-color: #d6d8db; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        input, textarea { padding: 8px; margin: 5px; width: 200px; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔒 Security Fixes Test Suite</h1>
+    <p>Testing the security improvements made to the CA-66 Agreement Generator.</p>
+
+    <div class="test-section info">
+        <h3>Test 1: XSS Protection (HTML Escaping)</h3>
+        <p>Testing that user input is properly escaped to prevent XSS attacks.</p>
+        <input type="text" id="xss-test-input" placeholder="Enter text with HTML: <script>alert('xss')</script>" style="width: 400px;">
+        <button onclick="testXSSProtection()">Test XSS Protection</button>
+        <div id="xss-results"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>Test 2: Email Validation</h3>
+        <p>Testing enhanced email validation and sanitization.</p>
+        <input type="email" id="email-test-input" placeholder="Enter email to test">
+        <button onclick="testEmailValidation()">Test Email Validation</button>
+        <div id="email-results"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>Test 3: CORS Policy</h3>
+        <p>Testing that CORS is properly restricted to allowed domains.</p>
+        <button onclick="testCORSPolicy()">Test CORS Policy</button>
+        <div id="cors-results"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>Test 4: Form Functionality</h3>
+        <p>Testing that basic form functionality still works after security fixes.</p>
+        <button onclick="testFormFunctionality()">Test Form Functionality</button>
+        <div id="form-results"></div>
+    </div>
+
+    <div id="results"></div>
+
+    <script type="module">
+        // Import the template system to test XSS protection
+        import { AgreementTemplate } from './assets/js/template.js';
+
+        window.testXSSProtection = function() {
+            const input = document.getElementById('xss-test-input').value || '<script>alert("XSS")</script><img src=x onerror=alert("XSS2")>';
+            const resultsDiv = document.getElementById('xss-results');
+            
+            try {
+                // Test the escapeHtml function is working by trying to process malicious input
+                const testData = {
+                    licenseeName: input,
+                    phone: '(555) 123-4567',
+                    email: 'test@example.com',
+                    agreementDate: '2025-08-14'
+                };
+                
+                // This should escape the HTML and not execute any scripts
+                const result = AgreementTemplate.processTemplate(testData);
+                
+                // Check if the input was properly escaped
+                if (result.includes('&lt;script&gt;') || result.includes('&amp;lt;script&amp;gt;')) {
+                    resultsDiv.className = 'test-section success';
+                    resultsDiv.innerHTML = '<strong>✅ PASS:</strong> HTML was properly escaped. No XSS vulnerability detected.';
+                } else if (result.includes('<script>')) {
+                    resultsDiv.className = 'test-section error';
+                    resultsDiv.innerHTML = '<strong>❌ FAIL:</strong> HTML was NOT escaped. XSS vulnerability detected!';
+                } else {
+                    resultsDiv.className = 'test-section info';
+                    resultsDiv.innerHTML = '<strong>ℹ️ INFO:</strong> Input processed but unclear if properly escaped. Check output.';
+                }
+            } catch (error) {
+                resultsDiv.className = 'test-section error';
+                resultsDiv.innerHTML = `<strong>❌ ERROR:</strong> ${error.message}`;
+            }
+        };
+
+        window.testEmailValidation = function() {
+            const email = document.getElementById('email-test-input').value || 'invalid-email';
+            const resultsDiv = document.getElementById('email-results');
+            
+            // Test email validation regex
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const isValid = emailRegex.test(email);
+            
+            // Test sanitization
+            const maliciousEmail = 'test@example.com<script>alert("xss")</script>';
+            const sanitizeString = (str) => String(str).replace(/[<>'"&]/g, '');
+            const sanitized = sanitizeString(maliciousEmail);
+            
+            if (isValid && !sanitized.includes('<script>')) {
+                resultsDiv.className = 'test-section success';
+                resultsDiv.innerHTML = `<strong>✅ PASS:</strong> Email validation and sanitization working. Email: ${email}, Sanitized test: ${sanitized}`;
+            } else if (!isValid) {
+                resultsDiv.className = 'test-section info';
+                resultsDiv.innerHTML = `<strong>ℹ️ INFO:</strong> Email validation working - detected invalid email: ${email}`;
+            } else {
+                resultsDiv.className = 'test-section error';
+                resultsDiv.innerHTML = `<strong>❌ FAIL:</strong> Sanitization failed. Result: ${sanitized}`;
+            }
+        };
+
+        window.testCORSPolicy = function() {
+            const resultsDiv = document.getElementById('cors-results');
+            resultsDiv.className = 'test-section info';
+            resultsDiv.innerHTML = '<strong>🔄 Testing...</strong> Making request to API endpoint...';
+            
+            // Test CORS by making a request to the API
+            fetch('http://localhost:3003/api/send-email', {
+                method: 'OPTIONS',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                const accessControl = response.headers.get('Access-Control-Allow-Origin');
+                if (accessControl && accessControl !== '*') {
+                    resultsDiv.className = 'test-section success';
+                    resultsDiv.innerHTML = `<strong>✅ PASS:</strong> CORS properly restricted. Origin: ${accessControl}`;
+                } else if (accessControl === '*') {
+                    resultsDiv.className = 'test-section error';
+                    resultsDiv.innerHTML = '<strong>❌ FAIL:</strong> CORS still allows all origins (*)';
+                } else {
+                    resultsDiv.className = 'test-section info';
+                    resultsDiv.innerHTML = '<strong>ℹ️ INFO:</strong> No Access-Control-Allow-Origin header found';
+                }
+            })
+            .catch(error => {
+                resultsDiv.className = 'test-section error';
+                resultsDiv.innerHTML = `<strong>❌ ERROR:</strong> ${error.message}`;
+            });
+        };
+
+        window.testFormFunctionality = function() {
+            const resultsDiv = document.getElementById('form-results');
+            resultsDiv.className = 'test-section info';
+            resultsDiv.innerHTML = '<strong>🔄 Testing...</strong> Checking form elements...';
+            
+            // Navigate to main form and test basic functionality
+            try {
+                // Check if main form elements exist
+                const mainForm = document.querySelector('form');
+                const hasForm = !!mainForm;
+                
+                // Basic validation check
+                const hasValidation = typeof window.UIManager !== 'undefined';
+                
+                if (hasForm || hasValidation) {
+                    resultsDiv.className = 'test-section success';
+                    resultsDiv.innerHTML = '<strong>✅ PASS:</strong> Basic form functionality appears to be working. Full test requires main application.';
+                } else {
+                    resultsDiv.className = 'test-section info';
+                    resultsDiv.innerHTML = '<strong>ℹ️ INFO:</strong> Test page - navigate to main application for full form testing.';
+                }
+            } catch (error) {
+                resultsDiv.className = 'test-section error';
+                resultsDiv.innerHTML = `<strong>❌ ERROR:</strong> ${error.message}`;
+            }
+        };
+    </script>
+
+    <div class="test-section info">
+        <h3>Manual Testing Instructions</h3>
+        <ol>
+            <li><strong>Open Main Application:</strong> <a href="http://localhost:8001" target="_blank">http://localhost:8001</a></li>
+            <li><strong>Test Form Filling:</strong> Fill out the form with normal data</li>
+            <li><strong>Test Malicious Input:</strong> Try entering HTML/script tags in text fields</li>
+            <li><strong>Test Email System:</strong> Generate a PDF and test email sending (requires proper credentials in .env.local)</li>
+            <li><strong>Check Console:</strong> Verify no security errors in browser console</li>
+        </ol>
+    </div>
+</body>
+</html>

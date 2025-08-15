@@ -7,6 +7,7 @@ import { DocumentGenerator } from './generator.js';
 import { PDFGenerator } from './pdf-generator.js';
 import { ExhibitModal } from './exhibit-modal.js';
 import { UIEnhancements } from './ui-enhancements.js';
+import { SuccessModal } from './success-modal.js';
 import './email-modal.js'; // Initialize email modal
 
 class AgreementApp {
@@ -356,9 +357,6 @@ class AgreementApp {
       // Store PDF bytes for potential download
       this.generatedPDFBytes = pdfBytes;
       
-      // Preview the PDF in a new tab
-      await PDFGenerator.previewPDF(pdfBytes);
-      
       // Automatically send email with PDF attachment
       try {
         console.log('📧 Automatically sending email with PDF attachment...');
@@ -386,29 +384,49 @@ class AgreementApp {
         
         if (emailResult.success) {
           console.log('✅ Email sent successfully with PDF attachment');
-          UIEnhancements.showToast(
-            `Agreement sent successfully to ${formData['email']}! A copy was also sent to kaufman@airspaceintegration.com for records.`, 
-            'success'
-          );
+          
+          // Hide loading states
+          UIEnhancements.hideLoading();
+          UIEnhancements.hideButtonLoading(generatePdfButton);
+          
+          // Show beautiful success modal instead of toast
+          SuccessModal.show({
+            email: formData['email'],
+            licenseeName: formData['licensee-name'],
+            aircraftRegistration: formData['aircraft-registration'],
+            aircraftMakeModel: formData['aircraft-make-model']
+          });
+          
+          // Show success animation on button
+          UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated & Emailed!');
+          
+          console.log('Success modal displayed');
+          return; // Exit early to avoid duplicate loading state management
         } else {
           throw new Error(emailResult.error);
         }
         
       } catch (emailError) {
         console.error('❌ Email sending failed:', emailError);
-        UIEnhancements.showToast(
-          'PDF generated successfully, but email sending failed: ' + emailError.message, 
-          'warning'
-        );
+        
+        // Hide loading states
+        UIEnhancements.hideLoading();
+        UIEnhancements.hideButtonLoading(generatePdfButton);
+        
+        // Show success modal with email warning
+        SuccessModal.showWithEmailStatus({
+          email: formData['email'],
+          licenseeName: formData['licensee-name'],
+          aircraftRegistration: formData['aircraft-registration'],
+          aircraftMakeModel: formData['aircraft-make-model']
+        }, false); // false = email failed
+        
+        // Show warning on button
+        UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated!');
+        
+        console.log('Success modal displayed with email warning');
+        return; // Exit early
       }
-      
-      // Hide loading states
-      UIEnhancements.hideLoading();
-      UIEnhancements.hideButtonLoading(generatePdfButton);
-      
-      // Show success animation and toast
-      UIEnhancements.showButtonSuccess(generatePdfButton, 'PDF Generated & Emailed!');
-      UIEnhancements.showToast('PDF generated successfully! Check the new tab to view your agreement.', 'success');
       
       console.log('PDF agreement generation completed');
     } catch (error) {

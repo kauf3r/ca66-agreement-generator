@@ -65,3 +65,4 @@ const AutomatedWorkflow = {
   - Shortened Required Acknowledgments text for single-line display
   - Updated logo file references to kebab-case naming convention
   - Enhanced form visual stability and user experience
+- Email functional - secrets removed

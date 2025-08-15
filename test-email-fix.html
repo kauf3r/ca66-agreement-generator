@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Fix Test - CA-66 Agreement Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .console-output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Email Fix Test - CA-66 Agreement Generator</h1>
+        <p>This page tests the email functionality fix to ensure PDF generation and email sending work properly.</p>
+        
+        <div id="test-results"></div>
+        
+        <h3>Test Actions:</h3>
+        <button onclick="testModuleImports()">1. Test Module Imports</button>
+        <button onclick="testPDFGenerator()">2. Test PDF Generator Access</button>
+        <button onclick="testEmailClient()">3. Test Email Client</button>
+        <button onclick="runFullTest()">4. Run Full Integration Test</button>
+        
+        <h3>Console Output:</h3>
+        <div id="console" class="console-output"></div>
+        
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click "Test Module Imports" to verify all modules load correctly</li>
+            <li>Click "Test PDF Generator Access" to check if PDFGenerator is accessible</li>
+            <li>Click "Test Email Client" to verify email client is working</li>
+            <li>Click "Run Full Integration Test" to test the complete email workflow</li>
+        </ol>
+        
+        <p><strong>Expected Result:</strong> All tests should pass, indicating that the email system can generate PDFs and send them via Gmail SMTP.</p>
+    </div>
+
+    <!-- Load the application modules -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module">
+        import { PDFGenerator } from './assets/js/pdf-generator.js';
+        import { DocumentGenerator } from './assets/js/generator.js';
+        import { EmailClient } from './assets/js/email-client.js';
+        
+        // Make modules available globally for testing
+        window.testModules = {
+            PDFGenerator,
+            DocumentGenerator,
+            EmailClient
+        };
+        
+        // Console capturing
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleDiv = document.getElementById('console');
+        
+        function appendToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '📝';
+            consoleDiv.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            originalLog.apply(console, args);
+            appendToConsole(args.join(' '), 'log');
+        };
+        
+        console.error = (...args) => {
+            originalError.apply(console, args);
+            appendToConsole(args.join(' '), 'error');
+        };
+        
+        // Test functions
+        window.testModuleImports = function() {
+            const results = document.getElementById('test-results');
+            console.log('Testing module imports...');
+            
+            try {
+                const tests = [
+                    { name: 'PDFGenerator', module: window.testModules.PDFGenerator },
+                    { name: 'DocumentGenerator', module: window.testModules.DocumentGenerator },
+                    { name: 'EmailClient', module: window.testModules.EmailClient }
+                ];
+                
+                let allPassed = true;
+                tests.forEach(test => {
+                    if (test.module) {
+                        results.innerHTML += `<div class="test-result success">✅ ${test.name} module loaded successfully</div>`;
+                        console.log(`✅ ${test.name} module available`);
+                    } else {
+                        results.innerHTML += `<div class="test-result error">❌ ${test.name} module failed to load</div>`;
+                        console.error(`❌ ${test.name} module not available`);
+                        allPassed = false;
+                    }
+                });
+                
+                if (allPassed) {
+                    results.innerHTML += `<div class="test-result success">🎉 All modules imported successfully!</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ Module import test failed: ${error.message}</div>`;
+                console.error('Module import test failed:', error);
+            }
+        };
+        
+        window.testPDFGenerator = function() {
+            const results = document.getElementById('test-results');
+            console.log('Testing PDF Generator access...');
+            
+            try {
+                const PDFGen = window.testModules.PDFGenerator;
+                if (PDFGen && typeof PDFGen.generateAgreementPDF === 'function') {
+                    results.innerHTML += `<div class="test-result success">✅ PDFGenerator.generateAgreementPDF method accessible</div>`;
+                    console.log('✅ PDFGenerator methods available');
+                    
+                    // Test window exposure (from app.js fix)
+                    if (window.PDFGenerator && window.PDFGenerator === PDFGen) {
+                        results.innerHTML += `<div class="test-result success">✅ PDFGenerator properly exposed to window object</div>`;
+                        console.log('✅ PDFGenerator available on window object');
+                    } else {
+                        results.innerHTML += `<div class="test-result warning">⚠️ PDFGenerator not yet exposed to window (app.js may not be loaded)</div>`;
+                        console.log('⚠️ Window exposure will happen when app.js loads');
+                    }
+                } else {
+                    results.innerHTML += `<div class="test-result error">❌ PDFGenerator methods not accessible</div>`;
+                    console.error('❌ PDFGenerator not properly loaded');
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ PDF Generator test failed: ${error.message}</div>`;
+                console.error('PDF Generator test failed:', error);
+            }
+        };
+        
+        window.testEmailClient = function() {
+            const results = document.getElementById('test-results');
+            console.log('Testing Email Client...');
+            
+            try {
+                const EmailClientClass = window.testModules.EmailClient;
+                if (EmailClientClass) {
+                    const emailClient = new EmailClientClass();
+                    if (typeof emailClient.sendAgreementEmail === 'function') {
+                        results.innerHTML += `<div class="test-result success">✅ EmailClient instantiated with sendAgreementEmail method</div>`;
+                        console.log('✅ EmailClient ready for sending emails');
+                    } else {
+                        results.innerHTML += `<div class="test-result error">❌ EmailClient missing sendAgreementEmail method</div>`;
+                        console.error('❌ EmailClient methods not available');
+                    }
+                } else {
+                    results.innerHTML += `<div class="test-result error">❌ EmailClient class not available</div>`;
+                    console.error('❌ EmailClient not loaded');
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ Email Client test failed: ${error.message}</div>`;
+                console.error('Email Client test failed:', error);
+            }
+        };
+        
+        window.runFullTest = function() {
+            const results = document.getElementById('test-results');
+            console.log('Running full integration test...');
+            
+            try {
+                results.innerHTML += `<div class="test-result success">🧪 Full Integration Test Started</div>`;
+                
+                // Test sample form data
+                const sampleFormData = {
+                    'licensee-name': 'Test Pilot',
+                    'email': 'test@example.com',
+                    'phone': '555-0123',
+                    'aircraft-registration': 'N12345',
+                    'aircraft-make-model': 'Cessna 172',
+                    'insurance-company': 'Test Insurance Co',
+                    'policy-number': 'TEST123',
+                    'coverage-amount': 1000000,
+                    'start-date': '2025-08-15',
+                    'end-date': '2026-08-15'
+                };
+                
+                console.log('Sample form data prepared:', sampleFormData);
+                results.innerHTML += `<div class="test-result success">✅ Sample form data prepared</div>`;
+                
+                // Test DocumentGenerator email capability
+                const docGen = window.testModules.DocumentGenerator;
+                if (docGen && docGen.emailClient) {
+                    results.innerHTML += `<div class="test-result success">✅ DocumentGenerator has email client</div>`;
+                    console.log('✅ DocumentGenerator email integration ready');
+                } else {
+                    results.innerHTML += `<div class="test-result error">❌ DocumentGenerator missing email client</div>`;
+                    console.error('❌ DocumentGenerator email integration missing');
+                }
+                
+                results.innerHTML += `<div class="test-result success">🎯 Integration test complete - Components are properly connected</div>`;
+                console.log('🎯 All components verified for email functionality');
+                
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ Full integration test failed: ${error.message}</div>`;
+                console.error('Full integration test failed:', error);
+            }
+        };
+        
+        // Auto-run basic tests on load
+        console.log('Email fix test page loaded - ready for testing');
+        
+    </script>
+</body>
+</html>

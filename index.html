@@ -446,6 +446,68 @@
         </div>
     </div>
 
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal-overlay success-modal" role="dialog" aria-labelledby="success-modal-title" aria-hidden="true">
+        <div class="modal-container success-container">
+            <div class="modal-header success-header">
+                <div class="success-icon-wrapper">
+                    <svg class="success-checkmark" viewBox="0 0 52 52">
+                        <circle class="success-checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="success-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <button type="button" class="modal-close success-close" aria-label="Close success modal">&times;</button>
+            </div>
+            <div class="modal-body success-body">
+                <div class="success-content">
+                    <h2 id="success-modal-title" class="success-title">Agreement Generated Successfully! 🎉</h2>
+                    <p class="success-message">
+                        Thank you for completing your CA-66 Airport Usage License Agreement. 
+                        Your application has been processed and is ready for review.
+                    </p>
+                    
+                    <div class="success-details">
+                        <div class="success-detail-item">
+                            <div class="success-detail-icon">📧</div>
+                            <div class="success-detail-content">
+                                <h3>Email Sent</h3>
+                                <p>Your completed agreement has been emailed to <span id="success-email-address"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="success-detail-item">
+                            <div class="success-detail-icon">📄</div>
+                            <div class="success-detail-content">
+                                <h3>PDF Document</h3>
+                                <p>A complete 9-page legal agreement with all your information filled in</p>
+                            </div>
+                        </div>
+                        
+                        <div class="success-detail-item">
+                            <div class="success-detail-icon">✅</div>
+                            <div class="success-detail-content">
+                                <h3>Next Steps</h3>
+                                <p>Review the agreement and bring it to your first visit to Monterey Bay Academy Airport</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="success-notice">
+                        <p><strong>Important:</strong> Please check your email (including spam folder) for the agreement. 
+                        A copy has also been sent to AirSpace Integration for processing.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer success-footer">
+                <div class="success-actions">
+                    <button type="button" id="success-close-btn" class="btn btn-primary success-btn">
+                        Perfect! Thank You
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->1
     <footer class="site-footer" role="contentinfo">
         <div class="container">
@@ -505,6 +567,7 @@
     <script type="module" src="assets/js/sticky-header.js"></script>
     <script type="module" src="assets/js/template.js"></script>
     <script type="module" src="assets/js/pdf-position-config.js"></script>
+    <script type="module" src="assets/js/success-modal.js"></script>
     <script type="module" src="assets/js/generator.js"></script>
     <script type="module" src="assets/js/ui.js"></script>
     <script type="module" src="assets/js/app.js"></script>
