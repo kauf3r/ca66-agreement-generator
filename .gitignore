@@ -43,3 +43,7 @@ env.local
 test-gmail-smtp.cjs
 test-email-*.js
 *-test-credentials.*
+
+# Security - Files with exposed secrets (removed from tracking)
+.env.production
+security-scan/
