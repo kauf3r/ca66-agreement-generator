@@ -285,7 +285,7 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #333333;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
@@ -322,10 +322,10 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
         }
         .detail-label {
             font-weight: 600;
-            color: #2d3748;
+            color: #333333;
         }
         .detail-value {
-            color: #4a5568;
+            color: #333333;
         }
         .footer {
             text-align: center;
@@ -334,7 +334,7 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
             background: #edf2f7;
             border-radius: 8px;
             font-size: 14px;
-            color: #718096;
+            color: #666666;
         }
         .logo {
             font-size: 24px;
@@ -345,6 +345,14 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
             .detail-row {
                 flex-direction: column;
             }
+        }
+        h3 {
+            color: #1a202c;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        p, li {
+            color: #333333;
         }
     </style>
 </head>
