@@ -89,7 +89,7 @@ export const SuccessModal = {
       setTimeout(() => firstFocusable.focus(), 400);
     }
     
-    // Set up auto-close timer (8 seconds)
+    // Set up auto-close timer (8 seconds, no visual countdown)
     this.setAutoCloseTimer();
     
     // Prevent body scroll
@@ -148,22 +148,6 @@ export const SuccessModal = {
       emailSpan.style.fontWeight = '600';
       emailSpan.style.color = '#059669';
     }
-    
-    // Add subtle personalization to the title if we have a name
-    const titleElement = this.modal.querySelector('.success-title');
-    if (titleElement && userData.licenseeName) {
-      const firstName = userData.licenseeName.split(' ')[0];
-      titleElement.innerHTML = `Agreement Generated Successfully, ${firstName}! 🎉`;
-    }
-    
-    // Update the thank you message with more personal touch
-    const messageElement = this.modal.querySelector('.success-message');
-    if (messageElement && userData.licenseeName) {
-      messageElement.innerHTML = `
-        Thank you, <strong>${userData.licenseeName}</strong>, for completing your CA-66 Airport Usage License Agreement. 
-        Your application has been processed and is ready for review.
-      `;
-    }
   },
   
   /**
@@ -176,9 +160,6 @@ export const SuccessModal = {
     this.autoCloseTimer = setTimeout(() => {
       this.hide();
     }, 8000);
-    
-    // Visual countdown on the button (optional)
-    this.startButtonCountdown();
   },
   
   /**
@@ -191,53 +172,6 @@ export const SuccessModal = {
     }
   },
   
-  /**
-   * Start visual countdown on the success button
-   */
-  startButtonCountdown() {
-    if (!this.successButton) return;
-    
-    const originalText = this.successButton.textContent;
-    let countdown = 8;
-    
-    const updateButton = () => {
-      if (countdown > 0 && this.isVisible()) {
-        this.successButton.textContent = `${originalText} (${countdown})`;
-        countdown--;
-        setTimeout(updateButton, 1000);
-      } else if (this.isVisible()) {
-        this.successButton.textContent = originalText;
-      }
-    };
-    
-    // Start countdown after initial animations complete
-    setTimeout(updateButton, 2000);
-  },
-  
-  /**
-   * Add celebratory effects (optional)
-   */
-  addCelebration() {
-    // Simple confetti effect using CSS animations
-    const celebration = document.createElement('div');
-    celebration.className = 'celebration-overlay';
-    celebration.innerHTML = `
-      <div class="confetti-piece" style="--delay: 0s; --x: 20%;">🎉</div>
-      <div class="confetti-piece" style="--delay: 0.2s; --x: 40%;">✨</div>
-      <div class="confetti-piece" style="--delay: 0.4s; --x: 60%;">🎊</div>
-      <div class="confetti-piece" style="--delay: 0.6s; --x: 80%;">⭐</div>
-    `;
-    
-    // Add to modal
-    this.modal.querySelector('.success-container').appendChild(celebration);
-    
-    // Remove after animation
-    setTimeout(() => {
-      if (celebration.parentNode) {
-        celebration.parentNode.removeChild(celebration);
-      }
-    }, 3000);
-  },
   
   /**
    * Show with email sending status

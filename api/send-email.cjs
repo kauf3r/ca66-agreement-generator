@@ -360,7 +360,7 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
             Dear ${recipientName},
         </div>
         
-        <p>Your CA-66 Airport Usage License Agreement has been generated and is ready for your review. This agreement grants you access to the Monterey Bay Academy Airport under the terms and conditions specified.</p>
+        <p>Your CA-66 Airport Usage License Agreement has been generated and is ready for your review.</p>
         
         ${includeAttachment && pdfBuffer ? 
             '<div style="background: #e8f5e8; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #28a745;"><strong>📎 PDF Agreement Attached:</strong> Your complete 9-page CA-66 Agreement is attached to this email as a PDF file. Please download and review the attached document.</div>' : 
@@ -394,9 +394,7 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
         <h3>Next Steps:</h3>
         <ol>
             <li><strong>Review the Agreement:</strong> Please carefully review all terms and conditions</li>
-            <li><strong>Sign and Date:</strong> Print, sign, and date the agreement</li>
-            <li><strong>Submit Documentation:</strong> Return the signed agreement with required insurance certificates</li>
-            <li><strong>Payment:</strong> Submit the annual license fee of $250.00</li>
+            <li><strong>E-signing & Submit Documentation:</strong> We'll prepare and send an email with e-signing, document submission and payment info.</li>
         </ol>
         
         <p><strong>Important Reminders:</strong></p>
@@ -447,9 +445,7 @@ AGREEMENT DETAILS:
 
 NEXT STEPS:
 1. Review the Agreement: Please carefully review all terms and conditions
-2. Sign and Date: Print, sign, and date the agreement
-3. Submit Documentation: Return the signed agreement with required insurance certificates
-4. Payment: Submit the annual license fee of $250.00
+2. E-signing & Submit Documentation: We'll prepare and send an email with e-signing, document submission and payment info.
 
 IMPORTANT REMINDERS:
 - Minimum 300 flight hours required
