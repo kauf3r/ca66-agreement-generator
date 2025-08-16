@@ -402,7 +402,7 @@ function generateEmailTemplate(recipientName, agreementData, includeAttachment =
         <h3>Next Steps:</h3>
         <ol>
             <li><strong>Review the Agreement:</strong> Please carefully review all terms and conditions</li>
-            <li><strong>E-signing & Submit Documentation:</strong> We'll prepare and send an email with e-signing, document submission and payment info.</li>
+            <li><strong>E-signing & Submit Documentation:</strong> We'll be in touch shortly to coordinate e-signing and to collect documentation along with the annual fee.</li>
         </ol>
         
         <p><strong>Important Reminders:</strong></p>
@@ -453,7 +453,7 @@ AGREEMENT DETAILS:
 
 NEXT STEPS:
 1. Review the Agreement: Please carefully review all terms and conditions
-2. E-signing & Submit Documentation: We'll prepare and send an email with e-signing, document submission and payment info.
+2. E-signing & Submit Documentation: We'll be in touch shortly to coordinate e-signing and to collect documentation along with the annual fee.
 
 IMPORTANT REMINDERS:
 - Minimum 300 flight hours required
