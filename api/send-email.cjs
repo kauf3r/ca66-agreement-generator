@@ -15,8 +15,6 @@ module.exports = async function handler(req, res) {
         hasGmailPassword: !!process.env.GMAIL_APP_PASSWORD,
         gmailUserLength: process.env.GMAIL_USER?.length || 0,
         gmailPasswordLength: process.env.GMAIL_APP_PASSWORD?.length || 0,
-        gmailUserValue: process.env.GMAIL_USER, // Temporary debug - will remove
-        gmailPasswordValue: process.env.GMAIL_APP_PASSWORD, // Temporary debug - will remove
         timestamp: new Date().toISOString()
     });
 
